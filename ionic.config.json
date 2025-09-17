@@ -1,0 +1,7 @@
+{
+  "name": "Jpix",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
