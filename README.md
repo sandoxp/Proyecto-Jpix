@@ -95,9 +95,106 @@ El administrador gestiona el catálogo de cursos, sedes y reglas académicas que
 
 ---
 
-## Arquitectura de la Información  
+## EP 1.4: Definición de la navegación y experiencia de usuario (UX)
 
-### Flujo de navegación  
-```mermaid
-flowchart TD
+### Objetivo
+Diseñar una experiencia de usuario clara, eficiente y accesible, donde el estudiante interactúe con **Jpix como asistente virtual** y, al mismo tiempo, pueda acceder a vistas gráficas (catálogo, calendario, alertas). La navegación debe permitir que los usuarios encuentren fácilmente lo que buscan, comprendan cómo moverse en la aplicación y completen sus tareas sin confusión.
 
+---
+
+### Flujo de Navegación (descripción textual)
+
+> **Nota:** El diagrama se representará en Draw.io / Figma, siguiendo los bloques de *Start/End, Actions y Decisions*.
+
+1. **Inicio (Start)**  
+   - Pantalla de bienvenida.  
+
+2. **Selección de Rol**  
+   - El usuario decide si entra como **Estudiante** o **Administrador**.  
+
+3. **Rama Estudiante**  
+   - Login / Registro.  
+   - Pantalla principal de **Chat con Jpix**.  
+   - Desde el chat se puede acceder a:  
+     - **Catálogo de cursos** (filtros por obligatorias, optativas, FOFU, inglés, sede, día).  
+     - **Calendario / Borrador** (visualizar horario semanal con cursos agregados).  
+       - Decisión: ¿hay choques de horario? → Sí: alerta.  
+       - Decisión: ¿hay traslados inviables? → Sí: advertencia.  
+     - **Validación de reglas académicas** (prerrequisitos, FOFU/inglés, límites por IRA).  
+       - Decisión: ¿cumple reglas? → No: advertencia específica.  
+     - **Generación de propuesta de horario** (Jpix arma un horario completo y lo explica).  
+       - Decisión: ¿usuario quiere refinar propuesta? → Sí: vuelve al chat con ajustes (*ej: “menos carga”, “mañana”, “sedes cercanas”*).  
+
+4. **Rama Administrador**  
+   - Login Administrador.  
+   - **Panel CRUD de Cursos/Sedes**.  
+   - **Gestión de reglas académicas** (IRA, traslados entre sedes).  
+
+5. **Fin (End)**  
+   - Estudiante: Horario válido generado.  
+   - Administrador: Catálogo y reglas actualizadas.  
+
+---
+
+### Experiencia de Usuario Esperada
+
+- **Eficiencia**  
+  - El chat central permite realizar acciones con pocos pasos.  
+  - Accesos directos a catálogo, calendario y validaciones.  
+  - Evita navegación confusa.  
+
+- **Accesibilidad**  
+  - Contraste suficiente (WCAG AA).  
+  - Navegación con teclado.  
+  - Etiquetas claras en formularios.  
+  - Diseño responsivo (usable en móvil y escritorio).  
+  - Texto alternativo en íconos e imágenes.  
+
+- **Estética**  
+  - Interfaz minimalista, coherente y clara.  
+  - Uso de colores semánticos (verde=OK, amarillo=advertencia, rojo=error).  
+  - Iconografía universal (lupa=buscar, calendario=horario, chat=asistente).  
+  - Retroalimentación visual y textual inmediata en cada acción.  
+
+---
+
+### Principios de UX Aplicados
+
+- **Usabilidad**: interfaz intuitiva, chat + botones rápidos, navegación simple.  
+- **Accesibilidad**: cumplimiento de WCAG (Perceptible, Operable, Comprensible, Robusto).  
+- **Consistencia**: estilos, formularios y componentes mantienen coherencia visual.  
+- **Retroalimentación**: mensajes y alertas inmediatas (ej: choques, traslados inviables, sobrecarga IRA).  
+- **Diseño adaptativo**: interfaz responsive en dispositivos móviles y web.  
+
+---
+
+### Patrones de Diseño UX Utilizados
+
+- **Chat central con widgets embebidos**: el asistente responde con vistas gráficas (mini calendario, listado filtrado, paneles de alerta).  
+- **Cards layout**: cada curso mostrado como tarjeta con info clave (docente, sede, horario, créditos).  
+- **Calendar view**: horario semanal con bloques coloreados por tipo de curso.  
+- **Alert panels / Toasts**: choques y traslados mostrados en mensajes emergentes claros.  
+- **Formularios accesibles**: login y registro con etiquetas, validaciones y ayudas contextuales.  
+
+---
+
+### Accesibilidad (WCAG 2.1) en la UI
+
+- **Perceptible**:  
+  - Contraste adecuado y fuentes legibles.  
+  - Texto alternativo en íconos e imágenes.  
+
+- **Operable**:  
+  - Navegación por teclado en todos los formularios y pantallas.  
+  - Orden lógico de tabulación.  
+
+- **Comprensible**:  
+  - Lenguaje claro y simple en mensajes.  
+  - Estructura de encabezados lógica (H1 → H2 → H3).  
+  - Mensajes de error específicos y contextualizados.  
+
+- **Robusto**:  
+  - Compatible con tecnologías de asistencia (atributos ARIA).  
+  - Marcado semántico correcto para formularios y navegación.  
+
+---
