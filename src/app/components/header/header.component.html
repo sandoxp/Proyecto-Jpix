@@ -6,12 +6,16 @@
   </ion-header>
   <ion-content class="ion-padding">This is the menu content.</ion-content>
 </ion-menu>
-
 <ion-header>
     <ion-toolbar>
       <ion-buttons slot="start">
         <ion-menu-button></ion-menu-button>
       </ion-buttons>
-      <ion-title>Menu</ion-title>
+      <ion-button (click) = "goToHome()">
+        <ion-label>Home</ion-label>
+      </ion-button> 
+      <ion-button (click) = "goToPPrincipal()">
+        <ion-label>Principal</ion-label>
+      </ion-button>
     </ion-toolbar>
 </ion-header>
