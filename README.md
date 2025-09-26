@@ -2,10 +2,10 @@
 Asistente virtual académico para la preinscripción de asignaturas en la PUCV.  
 
 # Presentado por:  
-- Isidora Gárate  
-- Matias Pardo  
-- Joaquín Saldivia  
-- Sebastián Sandoval  
+- Isidora Gárate Carrasco 
+- Matias Pardo Rozas
+- Joaquín Saldivia Osorio
+- Sebastián Sandoval Velásquez
 
 # Asistente Virtual Jpix  
 
