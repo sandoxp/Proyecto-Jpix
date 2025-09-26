@@ -1,0 +1,15 @@
+/* Evita que el contenido quede tapado por el tab bar cuando está visible (móvil) */
+@media (max-width: 767.98px) {
+  ion-tabs ion-content {
+    --padding-bottom: 64px; /* Ajusta si tu tab bar es más alta/baja */
+  }
+}
+
+/* Si prefieres forzar ocultamiento por CSS además de la clase (no necesario, solo refuerzo) */
+/*
+@media (min-width: 768px) {
+  ion-tab-bar {
+    display: none !important;
+  }
+}
+*/

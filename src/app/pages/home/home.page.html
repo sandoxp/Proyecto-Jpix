@@ -5,9 +5,54 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">home</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <!-- Título central -->
+  <div class="main-title">
+    <h1>¿En qué puedo ayudarte?</h1>
+  </div>
+
+  <!-- Bloque de opciones -->
+  <div class="options-box">
+    <p class="options-title">Lo que puedo hacer por ti</p>
+    <div class="options-buttons">
+      <ion-button expand="block" fill="solid" class="option-btn">Organizar tu horario</ion-button>
+      <ion-button expand="block" fill="solid" class="option-btn">Consultar ubicación</ion-button>
+      <ion-button expand="block" fill="solid" class="option-btn">Añadir asignatura</ion-button>
+    </div>
+  </div>
+
+  <!-- Buscador -->
+  <div class="search">
+    <ion-input
+      class="search__input"
+      type="text"
+      placeholder="Ingrese su consulta"
+      [(ngModel)]="consulta">
+    </ion-input>
+
+    <div class="search__divider"></div>
+
+    <ion-button class="search__btn" fill="clear" (click)="onBuscar()">
+      <ion-icon slot="icon-only" name="search-outline"></ion-icon>
+    </ion-button>
+  </div>
+
+  <!-- Recomendación de escritura -->
+  <section class="suggestion">
+    <img
+      class="suggestion__avatar"
+      src="assets/images/assistant-logo.png"
+      alt="Asistente Jpix" />
+
+    <div class="suggestion__text">
+      <p class="suggestion__title">
+        <strong><u>Recomendación de escritura:</u></strong>
+      </p>
+      <p class="suggestion__line">
+        <em>“Jpix, quiero que organices mi horario para este semestre”</em>
+      </p>
+      <p class="suggestion__line">
+        <em>“Jpix, quiero saber a qué distancia está Sausalito de Casa Central”</em>
+      </p>
+    </div>
+  </section>
 </ion-content>

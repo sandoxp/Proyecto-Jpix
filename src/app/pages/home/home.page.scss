@@ -1,0 +1,138 @@
+.main-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+
+  margin-top: 24px; /* separa del header */
+  margin-bottom: 16px;
+
+  h1 {
+    font-size: 24px;   /* puedes ajustar según Figma */
+    font-weight: 700;
+    color: #000;       /* negro, como en tu mock */
+  }
+}
+.options-box {
+  background: #d3cdcd; /* gris */
+  padding: 16px;
+  margin: 0 auto 20px; /* auto para centrar */
+  border-radius: 6px;
+  text-align: center;
+
+  max-width: 700px; /* 👈 límite de ancho */
+  width: 90%;       /* 👈 en pantallas chicas ocupa casi todo */
+}
+
+
+.options-title {
+  font-style: italic;
+  font-weight: 500;
+  margin-bottom: 12px;
+  text-decoration: underline dotted;
+}
+
+.options-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap; /* para que no se rompa en pantallas chicas */
+}
+
+.option-btn {
+  --background: #7a7a7a;   /* gris oscuro */
+  --color: #000;           /* texto negro */
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: none;    /* evita mayúsculas automáticas */
+  border-radius: 2px;
+  height: 20px;
+  padding: 0 12px;
+}
+
+/* Caja del buscador */
+.search {
+  display: flex;
+  align-items: stretch;
+  max-width: 900px;
+  width: 92%;
+  margin: 16px auto 24px;
+  border: 1.5px solid #000;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #dcdcdc; /* gris del mock */
+}
+
+/* Input grande y plano */
+.search__input {
+  flex: 1 1 auto;
+  --background: #dcdcdc;
+  --color: #000;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --highlight-color-focused: transparent; /* sin línea azul al foco */
+
+  /* tamaño del texto dentro del input */
+  &::part(native) {
+    padding: 12px 0; /* alto del rectángulo */
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  /* placeholder negro y visible */
+  input::placeholder {
+    color: #000;
+    opacity: 1;
+    font-weight: 700;
+  }
+}
+
+/* Separador vertical antes del botón */
+.search__divider {
+  width: 1px;
+  background: #000;
+}
+
+/* Botón de lupa a la derecha */
+.search__btn {
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --ripple-color: transparent;
+  --background: transparent;
+  border-left: 0; /* ya tenemos el divider */
+}
+
+.search__btn ion-icon {
+  font-size: 24px;
+  color: #000;
+}
+
+.suggestion {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  max-width: 900px;
+  width: 92%;
+  margin: 8px auto 32px; /* separa del buscador */
+}
+
+.suggestion__avatar {
+  width: 84px;      /* ajusta según tu imagen */
+  height: 84px;
+  object-fit: contain; /* respeta proporciones */
+  display: block;
+}
+
+.suggestion__text {
+  line-height: 1.25;
+}
+
+.suggestion__title {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+}
+
+.suggestion__line {
+  margin: 2px 0;
+  font-size: 15px;
+}
