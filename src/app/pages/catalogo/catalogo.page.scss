@@ -1,0 +1,125 @@
+/* Contenedor general */
+.catalog-shell {
+  padding: 12px 16px 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.catalog-slab {
+  width: 100%;
+  max-width: 980px;
+  background: #8e8e8e; /* gris del mock */
+  border-radius: 22px;
+  padding: 16px 16px 20px;
+  box-sizing: border-box;
+}
+
+/* ======== DESKTOP por defecto (sin barra horizontal) ======== */
+.h-scroll {           /* en desktop ocultamos cualquier overflow horizontal */
+  overflow-x: hidden;
+}
+.table-width {        /* ocupa todo el ancho disponible */
+  width: 100%;
+}
+
+/* ======== MÓVIL (<=900px): activar scroll lateral ======== */
+@media (max-width: 900px) {
+  .h-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-gutter: stable both-edges;
+    padding-bottom: 4px; /* deja espacio para la barra */
+  }
+  .table-width {
+    min-width: 980px; /* evita compresión del grid */
+  }
+}
+
+/* Cabecera tipo tabla */
+.table-head {
+  display: grid;
+  grid-template-columns: 2.1fr 1fr 0.8fr 1.4fr 1.2fr 0.8fr 1fr;
+  gap: 12px;
+  align-items: center;
+  color: #000;
+  font-weight: 600;
+  padding: 8px 10px 14px;
+}
+.th-right { text-align: right; }
+
+/* Lista y tarjetas */
+.course-list {
+  margin: 0;
+  padding: 0 4px;
+  --background: transparent;  /* sin franja blanca */
+  background: transparent;
+}
+
+.course-card {
+  --background: transparent;
+  margin: 10px 0;
+  border-radius: 18px;
+  --inner-padding-end: 0;
+  --inner-padding-start: 0;
+  padding: 0;
+}
+
+.course-card .row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 2.1fr 1fr 0.8fr 1.4fr 1.2fr 0.8fr 1fr;
+  gap: 12px;
+  align-items: center;
+  background: #dedede;      /* gris claro del mock */
+  border-radius: 16px;
+  padding: 14px;
+  box-sizing: border-box;
+}
+
+/* Celdas */
+.cell { min-width: 0; }
+
+.asignatura .code { font-weight: 800; margin-bottom: 2px; }
+.asignatura .name { line-height: 1.1; }
+.tipo { font-weight: 700; }
+
+.clave .slotline + .slotline { margin-top: 2px; }
+
+/* Aprobación + botón */
+.aprobacion {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+.add-btn {
+  --padding-start: 4px;
+  --padding-end: 4px;
+  --ripple-color: transparent;
+}
+
+/* Dots inferiores */
+.dots {
+  text-align: center;
+  font-size: 22px;
+  letter-spacing: 6px;
+  color: #fff;
+  opacity: 0.9;
+  margin-top: 6px;
+}
+
+/* Chip usuario */
+.user-chip { margin-inline-end: 4px; }
+
+/* Texto: nowrap en columnas angostas; multilinea donde conviene */
+.table-head .th,
+.cell:not(.asignatura):not(.clave) { white-space: nowrap; }
+.cell.asignatura,
+.cell.clave { white-space: normal; }
+
+/* Dark mode opcional */
+:host-context(.dark) {
+  .catalog-slab { background: #5a5a5a; }
+  .course-card .row { background: #cfcfcf; }
+}

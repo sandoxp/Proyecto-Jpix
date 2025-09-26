@@ -1,13 +1,63 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>Catalogo</ion-title>
+    <ion-title>Catálogo de asignaturas</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-chip color="medium" outline="true" class="user-chip" aria-label="Rol del usuario">
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <ion-label>Estudiante</ion-label>
+      </ion-chip>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Catalogo</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="catalog-shell">
+    <div class="catalog-slab">
+
+      <!-- Contenedor de la tabla -->
+      <div class="h-scroll" role="region" aria-label="Catálogo desplazable" tabindex="0">
+        <div class="table-width">
+          <!-- Cabecera -->
+          <div class="table-head" role="row">
+            <div class="th" role="columnheader">Asignatura</div>
+            <div class="th" role="columnheader">Tipo</div>
+            <div class="th" role="columnheader">Créditos</div>
+            <div class="th" role="columnheader">Profesor(a)</div>
+            <div class="th" role="columnheader">Clave</div>
+            <div class="th" role="columnheader">Sede</div>
+            <div class="th th-right" role="columnheader">Aprobación</div>
+          </div>
+
+          <!-- Lista -->
+          <ion-list lines="none" class="course-list">
+            <ion-item class="course-card" detail="false" *ngFor="let c of courses; trackBy: trackByCode">
+              <div class="row" role="row">
+                <div class="cell asignatura" role="cell">
+                  <div class="code">{{ c.code }}</div>
+                  <div class="name">{{ c.name }}</div>
+                </div>
+                <div class="cell tipo" role="cell"><strong>{{ c.type }}</strong></div>
+                <div class="cell creditos" role="cell">{{ c.credits }}</div>
+                <div class="cell profesor" role="cell">{{ c.professor }}</div>
+                <div class="cell clave" role="cell">
+                  <div class="slotline" *ngFor="let s of c.schedule">{{ s }}</div>
+                </div>
+                <div class="cell sede" role="cell">{{ c.campus }}</div>
+                <div class="cell aprobacion th-right" role="cell">
+                  <b>{{ c.approval }}%</b>
+                  <ion-button fill="clear" class="add-btn" aria-label="Agregar {{ c.code }}" (click)="addCourse(c)">
+                    <ion-icon slot="icon-only" name="add-circle-outline" aria-hidden="true"></ion-icon>
+                  </ion-button>
+                </div>
+              </div>
+            </ion-item>
+          </ion-list>
+        </div>
+      </div>
+
+      <!-- Indicador inferior -->
+      <div class="dots" role="presentation" aria-hidden="true">• • •</div>
+    </div>
+  </div>
 </ion-content>
