@@ -38,64 +38,71 @@ El administrador gestiona el catálogo de cursos, sedes y reglas académicas que
 ## Requerimientos  
 
 ### Roles del Sistema  
-- **Estudiante**: Puede consultar, organizar y generar horarios, recibir validaciones y recomendaciones personalizadas.  
-- **Administrador**: Gestiona el catálogo de cursos, horarios, sedes y reglas académicas (créditos por IRA, matriz de traslados).  
+- **Estudiante**: consulta en lenguaje natural, explora catálogo y construye su horario.  
+- **Administrador**: mantiene el catálogo y define reglas y parámetros del sistema.  
 
 ---
 
 ### Requerimientos Funcionales  
 
 #### Rol Estudiante  
-- **RF-EST-01**: **Consulta en lenguaje natural**  
-  El estudiante puede ingresar consultas en el chat (*“Organiza mi horario”*, *“Agrega Inglés II”*) y Jpix interpreta la intención.  
+- **RF-EST-01: Consulta en lenguaje natural**  
+  El estudiante escribe mensajes en un chat (“Organiza mi horario”, “Agrega Inglés II sección A”).  
+  El sistema identifica una sola intención por mensaje y ejecuta la acción correspondiente o solicita aclaración si la intención es ambigua.  
 
-- **RF-EST-02**: **Explorar catálogo de asignaturas**  
-  El estudiante puede visualizar cursos con información de docente, sede, sala, horario y créditos. Puede aplicar filtros (tipo, sede, día).  
+- **RF-EST-02: Explorar catálogo de asignaturas**  
+  El estudiante visualiza el catálogo con: código, nombre, sección, docente, sede, sala, bloques y créditos.  
+  Puede filtrar por tipo, sede y día, y ordenar por código o nombre.  
 
-- **RF-EST-03**: **Validación automática de reglas académicas**  
-  Jpix valida prerrequisitos, inclusión de reprobadas/atrasadas, FOFU/inglés, y límites de créditos por IRA.  
+- **RF-EST-03: Validación automática de reglas académicas**  
+  El sistema valida, durante la construcción del horario: prerrequisitos, inclusión de reprobadas/atrasadas, cumplimiento de FOFU e Inglés, y límite de créditos según IRA.  
 
-- **RF-EST-04**: **Detección de choques de horario**  
-  El sistema alerta cuando dos cursos se traslapan en el mismo bloque.  
+- **RF-EST-04: Detección de choques de horario**  
+  El sistema detecta solapes de tiempo en un mismo día entre dos o más secciones y muestra un aviso con el conflicto identificado.  
 
-- **RF-EST-05**: **Detección de traslados inviables**  
-  El sistema advierte cuando un estudiante intenta tomar clases consecutivas en sedes que no alcanzan a conectarse por tiempos de traslado.  
+- **RF-EST-05: Detección de traslados inviables**  
+  El sistema evalúa si es posible trasladarse entre sedes en bloques consecutivos, usando una matriz de tiempos mínimos.  
+  Si no es viable, se muestra una alerta indicando las sedes involucradas.  
 
-- **RF-EST-06**: **Generación y refinamiento de propuestas de horario**  
-  Jpix genera propuestas sin choques, respeta reglas y explica decisiones. Permite ajustes por preferencias (*“quiero menos carga”*, *“prefiero sedes cercanas”*).  
+- **RF-EST-06: Generación de propuestas de horario con preferencias**  
+  El sistema genera propuestas de horario sin choques y cumpliendo reglas académicas.  
+  Permite aplicar preferencias como “menos carga”, “evitar traslados”, “prefiero sede X” o “sin clases viernes”.  
 
 #### Rol Administrador  
-- **RF-ADM-01**: **Gestión de catálogo y parámetros**  
-  El administrador puede crear, editar o eliminar cursos, secciones y sedes, además de configurar matriz de traslados y límites de créditos por IRA.  
+- **RF-ADM-01: Gestión de catálogo y parámetros**  
+  El administrador crea, edita o elimina cursos, secciones, sedes y salas.  
+  Además, configura reglas académicas (prerrequisitos, obligatoriedad de reprobadas/atrasadas, FOFU/Inglés, límite de créditos por IRA) y define la matriz de traslados.  
 
 ---
 
 ### Requerimientos No Funcionales  
 
 - **RNF-01: Accesibilidad**  
-  La aplicación debe cumplir principios de accesibilidad (contraste de colores, navegación por teclado, etiquetas claras) para garantizar que cualquier estudiante pueda usarla.  
+  La interfaz cumple principios de accesibilidad: contraste adecuado, foco visible, navegación por teclado y uso de etiquetas ARIA en componentes interactivos.  
 
 - **RNF-02: Usabilidad**  
-  La interfaz debe ser intuitiva y coherente, con pantallas simples, iconografía clara y retroalimentación visual en cada acción.  
+  La interfaz es clara y coherente, con navegación simple, retroalimentación visual ante acciones, y uso de componentes Ionic (tabs, headers, modals, alerts, lists).  
 
 - **RNF-03: Seguridad**  
-  El sistema debe proteger la información de los usuarios mediante autenticación con JWT, encriptación de contraseñas con bcrypt y configuración segura de CORS.  
+  El sistema protege la información de los usuarios mediante autenticación con JWT, encriptación de contraseñas con bcrypt y configuración segura de CORS.  
 
 - **RNF-04: Privacidad**  
-  Los datos académicos del estudiante deben manejarse con confidencialidad, simulando solo información académica sin exponer datos reales sensibles.  
+  Los datos académicos se manejan con confidencialidad. En modo demo se utilizan datos ficticios; en producción se restringe la recopilación al mínimo necesario.  
 
-- **RNF-05: Portabilidad**  
-  La aplicación debe ser accesible desde navegadores modernos y adaptarse a dispositivos móviles y de escritorio (diseño responsive).  
+- **RNF-05: Portabilidad y compatibilidad**  
+  La aplicación funciona en navegadores modernos y se adapta a dispositivos móviles y de escritorio mediante diseño responsive.  
 
-- **RNF-06: Disponibilidad**  
-  El sistema debe poder instalarse como **PWA**, permitiendo su uso incluso en condiciones de conectividad limitada.  
+- **RNF-06: Disponibilidad (PWA)**  
+  La aplicación es instalable como PWA y permite uso con conectividad limitada, mostrando el catálogo cacheado y el horario guardado.  
 
 - **RNF-07: Mantenibilidad**  
-  El código debe estar modularizado y documentado, de manera que los cambios futuros (como añadir nuevas reglas académicas) puedan hacerse sin alterar toda la aplicación.  
+  El código está modularizado y documentado, de modo que se puedan añadir nuevas reglas académicas o sedes sin afectar toda la aplicación.  
 
 ---
 
-## EP 1.4: Definición de la navegación y experiencia de usuario (UX)
+
+### Definición de la navegación y experiencia de usuario (UX)
+---
 
 ### Objetivo
 Diseñar una experiencia de usuario clara, eficiente y accesible, donde el estudiante interactúe con **Jpix como asistente virtual** y, al mismo tiempo, pueda acceder a vistas gráficas (catálogo, calendario, alertas). La navegación debe permitir que los usuarios encuentren fácilmente lo que buscan, comprendan cómo moverse en la aplicación y completen sus tareas sin confusión.
@@ -104,7 +111,7 @@ Diseñar una experiencia de usuario clara, eficiente y accesible, donde el estud
 
 ### Flujo de Navegación (descripción textual)
 
-> **Nota:** El diagrama se representará en Draw.io / Figma, siguiendo los bloques de *Start/End, Actions y Decisions*.
+> **Nota:** El diagrama se representará en Figma, siguiendo los bloques de *Start/End, Actions y Decisions*.
 
 1. **Inicio (Start)**  
    - Pantalla de bienvenida.  
