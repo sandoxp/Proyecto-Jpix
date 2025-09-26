@@ -7,7 +7,9 @@
   <ion-content class="ion-padding">This is the menu content.
     <ion-list>
       <ion-item routerLink="/home">Home</ion-item>
-      <ion-item routerLink="/p-principal">Página Principal</ion-item>
+      <ion-item routerLink="/catalogo">Catalogo</ion-item>
+      <ion-item routerLink="/horario">Horario</ion-item>
+      <ion-item routerLink="/perfil">Perfil</ion-item>
     </ion-list>
     </ion-content>
 </ion-menu>
@@ -19,8 +21,14 @@
       <ion-button (click) = "goToHome()">
         <ion-label>Home</ion-label>
       </ion-button> 
-      <ion-button (click) = "goToPPrincipal()">
-        <ion-label>Principal</ion-label>
+      <ion-button (click) = "goToCatalogo()">
+        <ion-label>Catalogo</ion-label>
+      </ion-button>
+      <ion-button (click) = "goToHorario()">
+        <ion-label>Horario</ion-label>
+      </ion-button>
+      <ion-button (click) = "goToPerfil()">
+        <ion-label>Perfil</ion-label>
       </ion-button>
     </ion-toolbar>
 </ion-header>

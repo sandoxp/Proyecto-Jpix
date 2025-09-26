@@ -17,8 +17,16 @@ export class HeaderComponent  implements OnInit {
     this.router.navigate(['/home']);
   }
 
-  goToPPrincipal(){
-    this.router.navigate(['/p-principal']);
+  goToCatalogo(){
+    this.router.navigate(['/catalogo']);
+  }
+
+  goToHorario(){
+    this.router.navigate(['/horario']);
+  }
+
+  goToPerfil(){
+    this.router.navigate(['/perfil']);
   }
 
 }
