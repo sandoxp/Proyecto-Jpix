@@ -1,2 +1,55 @@
 // For information on how to create your own theme, please see:
 // http://ionicframework.com/docs/theming/
+
+@use "sass:math";
+
+:root {
+  // definimos colores semejantes a los que usa la pucv para integrarlo de mejor forma
+  --ion-color-primary: #004d9c;
+  --ion-color-primary-rgb: 0, 77, 156;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #004489;
+  --ion-color-primary-tint: #1a60a5;
+
+  // estos colores los utilizaremos para algunas de las funciones de nuestro sitio
+  --ion-color-success: #28a745; // Mensaje "Horario válido generado"
+  --ion-color-warning: #ffc107; // Advertencia "Traslado inviable"
+  --ion-color-danger: #dc3545;  // Alerta "Choque detectado"
+
+  // estos seran los colores de texto y de fondo para generar buen contraste, super importante en diseno
+  --ion-background-color: #f4f5f8;
+  --ion-background-color-rgb: 244, 245, 248;
+  --ion-text-color: #1f2937;
+  --ion-text-color-rgb: 31, 41, 55;
+
+  // modificamos la tipografia
+  --ion-font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+
+// utilizaremos esta funcion para convertir píxeles a rem, manteniendo la accesibilidad de la tipografía
+@function rem($px) {
+  @return math.div($px, 16) * 1rem;
+}
+
+// usamos mixin para crear una sombra suave, de momento usaremos esto en cards y formularios.
+@mixin elevate($y: 4px, $blur: 12px, $alpha: 0.1) {
+  box-shadow: 0 $y $blur rgba(0, 0, 0, $alpha);
+}
+
+// Cen este bloque pondremosun modo oscuro para el usuario
+@media (prefers-color-scheme: dark) {
+  :root {
+    // colores de fondo oscuros para un mejor contraste en la noche
+    --ion-background-color: #121212;
+    --ion-background-color-rgb: 18, 18, 18;
+    --ion-text-color: #e5e5e5;
+    --ion-text-color-rgb: 229, 229, 229;
+
+    // y suavizamos el primario para que no sea demasiado brillante en fondo oscuro
+    --ion-color-primary: #4a90e2;
+    --ion-color-primary-shade: #417eb6;
+    --ion-color-primary-tint: #5c99e5;
+  }
+}
