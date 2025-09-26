@@ -9,12 +9,33 @@
  * https://ionicframework.com/docs/layout/global-stylesheets
  */
 
+// importamos primero nuestras variables y mixins personalizados
+@import 'theme/variables.scss';
+
+
 #main-content{
     height : 100%;
     width: 100%;
     display: block;
 }
 
+// aplicamos la tipografia globalmente y definimos el color de fondo base
+body {
+  font-family: var(--ion-font-family);
+  background: var(--ion-background-color);
+}
+
+// clase que usamos para una sombra suave y bordes redondeados, usada en Cards y contenedores
+.shadow-soft {
+  @include elevate(6px, 16px, 0.1);
+  border-radius: rem(10);
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    // esto solo es un efecto para que se vea mejor
+  }
+}
 
 
 /* Core CSS required for Ionic components to work properly */
