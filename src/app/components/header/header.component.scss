@@ -1,0 +1,47 @@
+:host {
+  display: block;
+}
+
+ion-toolbar {
+  --background: var(--ion-color-dark, #222428);
+  --color: #fff;
+  position: relative;
+  min-height: 56px;
+}
+
+/* Centrado absoluto para JPIX + avatar */
+.brand {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none; /* no bloquea clicks del toolbar */
+}
+
+.logo {
+  font-weight: 800;
+  font-size: 1.4rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.brand-avatar {
+  width: 28px;
+  height: 28px;
+}
+
+/* Chip "Estudiante" (derecha) */
+.user-chip {
+  --background: transparent;
+  --color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 16px;
+  height: 32px;
+  padding-inline: 8px;
+  margin-inline-end: 4px;
+}
+.user-chip ion-icon {
+  margin-right: 6px;
+}

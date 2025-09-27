@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
@@ -7,26 +7,28 @@ import { Router } from '@angular/router';
   styleUrls: ['./header.component.scss'],
   standalone: false,
 })
-export class HeaderComponent  implements OnInit {
+export class HeaderComponent implements OnInit {
+  // Texto central
+  @Input() title: string = 'JPIX';
 
-  constructor(private router: Router) { }
+  // Texto del chip (derecha)
+  @Input() roleLabel: string = 'Estudiante';
+
+  // Avatar junto a JPIX (misma imagen que usas en Home)
+  @Input() avatarSrc: string = 'assets/images/assistant-logo.png';
+
+  constructor(private router: Router) {}
 
   ngOnInit() {}
 
-  goToHome(){
-    this.router.navigate(['/home']);
+  // Chip clickeable (por ahora sin acción; queda listo para futura lógica)
+  onRoleClick(): void {
+    // no-op intencional (puedes abrir un popover/cambiar rol aquí más adelante)
   }
 
-  goToCatalogo(){
-    this.router.navigate(['/catalogo']);
-  }
-
-  goToHorario(){
-    this.router.navigate(['/horario']);
-  }
-
-  goToPerfil(){
-    this.router.navigate(['/perfil']);
-  }
-
+  // Métodos de navegación (conservados)
+  goToHome()     { this.router.navigate(['/home']); }
+  goToCatalogo() { this.router.navigate(['/catalogo']); }
+  goToHorario()  { this.router.navigate(['/horario']); }
+  goToPerfil()   { this.router.navigate(['/perfil']); }
 }

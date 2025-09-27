@@ -1,34 +1,51 @@
-<ion-menu contentId="main-content">
+<!-- Menú lateral -->
+<ion-menu contentId="main-content" side="start">
   <ion-header>
     <ion-toolbar>
-      <ion-title>Menu Content</ion-title>
+      <ion-title>Menu</ion-title>
     </ion-toolbar>
   </ion-header>
-  <ion-content class="ion-padding">This is the menu content.
+  <ion-content class="ion-padding">
     <ion-list>
       <ion-item routerLink="/home">Home</ion-item>
-      <ion-item routerLink="/catalogo">Catalogo</ion-item>
+      <ion-item routerLink="/catalogo">Catálogo</ion-item>
       <ion-item routerLink="/horario">Horario</ion-item>
       <ion-item routerLink="/perfil">Perfil</ion-item>
     </ion-list>
-    </ion-content>
+  </ion-content>
 </ion-menu>
+
+<!-- Header superior -->
 <ion-header>
-    <ion-toolbar>
-      <ion-buttons slot="start">
-        <ion-menu-button></ion-menu-button>
-      </ion-buttons>
-      <ion-button (click) = "goToHome()">
-        <ion-label>Home</ion-label>
-      </ion-button> 
-      <ion-button (click) = "goToCatalogo()">
-        <ion-label>Catalogo</ion-label>
-      </ion-button>
-      <ion-button (click) = "goToHorario()">
-        <ion-label>Horario</ion-label>
-      </ion-button>
-      <ion-button (click) = "goToPerfil()">
-        <ion-label>Perfil</ion-label>
-      </ion-button>
-    </ion-toolbar>
+  <ion-toolbar color="dark">
+    <!-- Botón de menú (izquierda) -->
+    <ion-buttons slot="start">
+      <ion-menu-button autoHide="false"></ion-menu-button>
+    </ion-buttons>
+
+    <!-- Marca centrada: JPIX + avatar -->
+    <div class="brand" aria-label="JPIX">
+      <span class="logo">{{ title }}</span>
+      <ion-avatar class="brand-avatar">
+        <img [src]="avatarSrc" alt="Asistente Jpix" />
+      </ion-avatar>
+    </div>
+
+    <!-- Lado derecho: chip clickeable "Estudiante" (sin [button]) -->
+    <ion-buttons slot="end">
+      <ion-chip
+        class="user-chip"
+        color="medium"
+        outline="true"
+        (click)="onRoleClick()"
+        (keyup.enter)="onRoleClick()"
+        role="button"
+        tabindex="0"
+        aria-label="Rol del usuario: {{ roleLabel }}"
+      >
+        <ion-icon name="person-circle-outline"></ion-icon>
+        <ion-label>{{ roleLabel }}</ion-label>
+      </ion-chip>
+    </ion-buttons>
+  </ion-toolbar>
 </ion-header>
