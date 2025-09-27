@@ -5,16 +5,58 @@
 </ion-header>
 
 <ion-content>
-  <ion-item>
-    <ion-label position="floating">Correo electrónico</ion-label>
-    <ion-input type="email" [(ngModel)]="email"></ion-input>
-  </ion-item>
+  <!-- Logo centrado -->
+  <div class="login-logo">
+    <img src="assets/images/assistant-logo.png" alt="Asistente Jpix" />
+  </div>
 
-  <ion-item>
-    <ion-label position="floating">Contraseña</ion-label>
-    <ion-input type="password" [(ngModel)]="password"></ion-input>
-  </ion-item>
+  <!-- Mensaje de bienvenida -->
+  <div class="welcome-text">
+    <h2>Bienvenido a tu asistente virtual</h2>
+    <p>Selecciona tu rol</p>
+  </div>
 
+  <!-- Selección del rol -->
+  <ion-segment [(ngModel)]="role" color="primary">
+    <ion-segment-button value="estudiante">
+      Estudiante
+    </ion-segment-button>
+    <ion-segment-button value="administrador">
+      Administrador
+    </ion-segment-button>
+  </ion-segment>
+
+  <!-- Solo mostrar el formulario correspondiente al rol seleccionado -->
+  <div *ngIf="role">
+    <!-- Estudiante -->
+    <ion-item *ngIf="role === 'estudiante'">
+      <ion-label position="floating">Rut</ion-label>
+      <ion-input type="text" [(ngModel)]="rut"></ion-input>
+    </ion-item>
+
+    <ion-item *ngIf="role === 'estudiante'">
+      <ion-label position="floating">Contraseña</ion-label>
+      <ion-input type="password" [(ngModel)]="password"></ion-input>
+    </ion-item>
+
+    <!-- Administrador -->
+    <ion-item *ngIf="role === 'administrador'">
+      <ion-label position="floating">Usuario</ion-label>
+      <ion-input type="text" [(ngModel)]="usuario"></ion-input>
+    </ion-item>
+
+    <ion-item *ngIf="role === 'administrador'">
+      <ion-label position="floating">Rut</ion-label>
+      <ion-input type="text" [(ngModel)]="rut"></ion-input>
+    </ion-item>
+
+    <ion-item *ngIf="role === 'administrador'">
+      <ion-label position="floating">Contraseña</ion-label>
+      <ion-input type="password" [(ngModel)]="password"></ion-input>
+    </ion-item>
+  </div>
+
+  <!-- Botón de login -->
   <ion-button expand="full" (click)="login()">Iniciar sesión</ion-button>
 
   <div class="register-link">

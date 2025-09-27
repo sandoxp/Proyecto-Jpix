@@ -9,19 +9,29 @@ import { AuthService } from 'src/app/auth';  // Importamos el servicio de autent
   standalone: false,
 })
 export class LoginPage {
-  email: string = '';
+  role: string = '';  // El valor predeterminado es vacío hasta que se seleccione el rol
+  rut: string = '';
+  usuario: string = '';   // Solo se usará si el rol es 'administrador'
   password: string = '';
 
   constructor(private router: Router, private authService: AuthService) {}
 
   login() {
-    // Aquí agregamos una validación simple para el correo y la contraseña
-    if (this.email && this.password) {
-      // Simulación de autenticación (en la práctica, harías una llamada a la API)
-      this.authService.login(); // Usamos el servicio para registrar el login
-      this.router.navigate(['/home']); // Redirigimos a la página de home después de login
-    } else {
-      alert('Por favor ingresa un correo y una contraseña válidos');
+    // Validación de campos según el rol seleccionado
+    if (this.role === 'estudiante') {
+      if (this.rut && this.password) {
+        this.authService.login(); // Usamos el servicio para registrar el login
+        this.router.navigate(['/home']); // Redirigimos a la página de home después de login
+      } else {
+        alert('Por favor ingresa un rut y una contraseña válidos');
+      }
+    } else if (this.role === 'administrador') {
+      if (this.usuario && this.rut && this.password) {
+        this.authService.login(); // Usamos el servicio para registrar el login
+        this.router.navigate(['/home']); // Redirigimos a la página de home después de login
+      } else {
+        alert('Por favor ingresa un usuario, rut y una contraseña válidos');
+      }
     }
   }
 }

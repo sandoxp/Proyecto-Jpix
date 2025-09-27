@@ -1,28 +1,79 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Registro</ion-title>
+    <ion-title>Registrarse</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content>
+  <h2>Rellene los siguientes campos</h2>
+
+  <!-- Correo electrónico -->
   <ion-item>
     <ion-label position="floating">Correo electrónico</ion-label>
-    <ion-input type="email" [(ngModel)]="email"></ion-input>
+    <ion-input type="email" [(ngModel)]="email" placeholder="ejemplo@mail.com"></ion-input>
   </ion-item>
 
+  <!-- Nombre de usuario -->
+  <ion-item>
+    <ion-label position="floating">Nombre de usuario</ion-label>
+    <ion-input type="text" [(ngModel)]="username" placeholder="Ingresa tu nombre"></ion-input>
+  </ion-item>
+
+  <!-- Documento -->
+  <ion-item>
+    <ion-label position="floating">Documento</ion-label>
+    <ion-select [(ngModel)]="documentType" placeholder="Selecciona documento">
+      <ion-select-option value="rut">Rut</ion-select-option>
+      <ion-select-option value="pasaporte">Pasaporte</ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item *ngIf="documentType === 'rut'">
+    <ion-label position="floating">Rut</ion-label>
+    <ion-input type="text" [(ngModel)]="rut" placeholder="Formato: 12.345.678-9"></ion-input>
+  </ion-item>
+
+  <ion-item *ngIf="documentType === 'pasaporte'">
+    <ion-label position="floating">Pasaporte</ion-label>
+    <ion-input type="text" [(ngModel)]="passport" placeholder="Número de pasaporte"></ion-input>
+  </ion-item>
+
+  <!-- País -->
+  <ion-item>
+    <ion-label position="floating">País</ion-label>
+    <ion-input type="text" [(ngModel)]="country" placeholder="Ingresa tu país"></ion-input>
+  </ion-item>
+
+  <!-- Comuna -->
+  <ion-item>
+    <ion-label position="floating">Comuna</ion-label>
+    <ion-input type="text" [(ngModel)]="comuna" placeholder="Ingresa tu comuna"></ion-input>
+  </ion-item>
+
+  <!-- Celular -->
+  <ion-item>
+    <ion-label position="floating">Celular</ion-label>
+    <ion-input type="tel" [(ngModel)]="phone" placeholder="+56 9 1234 5678"></ion-input>
+  </ion-item>
+
+  <!-- Contraseña -->
   <ion-item>
     <ion-label position="floating">Contraseña</ion-label>
-    <ion-input type="password" [(ngModel)]="password"></ion-input>
+    <ion-input type="password" [(ngModel)]="password" placeholder="Ingresa una contraseña"></ion-input>
   </ion-item>
 
+  <!-- Confirmación de Contraseña -->
   <ion-item>
-    <ion-label position="floating">Confirmar contraseña</ion-label>
-    <ion-input type="password" [(ngModel)]="confirmPassword"></ion-input>
+    <ion-label position="floating">Confirmación de contraseña</ion-label>
+    <ion-input type="password" [(ngModel)]="confirmPassword" placeholder="Confirma tu contraseña"></ion-input>
   </ion-item>
 
-  <ion-button expand="full" (click)="register()">Registrar</ion-button>
+  <!-- Acepto los términos -->
+  <ion-item>
+    <ion-checkbox [(ngModel)]="termsAccepted"></ion-checkbox>
+    <ion-label>Acepto los <a href="#">términos y condiciones</a></ion-label>
+  </ion-item>
 
-  <div class="login-link">
-    <p>Ya tienes cuenta? <a routerLink="/login">Inicia sesión aquí</a></p>
-  </div>
+  <!-- Botón de guardar -->
+  <ion-button expand="full" (click)="register()">Guardar</ion-button>
 </ion-content>

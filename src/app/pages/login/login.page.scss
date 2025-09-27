@@ -1,0 +1,43 @@
+/* Centrado del logo */
+.login-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.login-logo img {
+  width: 120px; /* Ajusta el tamaño del logo */
+  height: auto;
+}
+
+/* Texto de bienvenida */
+.welcome-text {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.welcome-text h2 {
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.welcome-text p {
+  font-size: 1.2rem;
+  color: #777;
+}
+
+/* Estilos de los campos */
+ion-item {
+  margin-bottom: 15px;
+}
+
+ion-button {
+  margin-top: 20px;
+}
+
+/* Enlace para registro */
+.register-link {
+  margin-top: 20px;
+  text-align: center;
+}
