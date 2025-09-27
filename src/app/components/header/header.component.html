@@ -31,14 +31,14 @@
       </ion-avatar>
     </div>
 
-    <!-- Lado derecho: chip clickeable "Estudiante" (sin [button]) -->
+    <!-- Lado derecho: chip (abre popover) -->
     <ion-buttons slot="end">
       <ion-chip
         class="user-chip"
         color="medium"
         outline="true"
-        (click)="onRoleClick()"
-        (keyup.enter)="onRoleClick()"
+        (click)="openRoleMenu($event)"
+        (keyup.enter)="openRoleMenu($event)"
         role="button"
         tabindex="0"
         aria-label="Rol del usuario: {{ roleLabel }}"
@@ -49,3 +49,25 @@
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
+<!-- Popover con acciones -->
+<ion-popover
+  [isOpen]="roleMenuOpen"
+  [event]="roleMenuEvent"
+  (didDismiss)="roleMenuOpen = false"
+>
+  <ng-template>
+    <ion-content>
+      <ion-list lines="full">
+        <ion-item button detail="false" (click)="viewProfile()">
+          <ion-icon slot="start" name="person-outline"></ion-icon>
+          <ion-label>Ver perfil</ion-label>
+        </ion-item>
+        <ion-item button detail="false" (click)="logout()">
+          <ion-icon slot="start" name="log-out-outline"></ion-icon>
+          <ion-label>Cerrar sesión</ion-label>
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ng-template>
+</ion-popover>

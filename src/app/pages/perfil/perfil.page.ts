@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NavController, ToastController } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 interface Perfil {
   nombre: string;
@@ -33,7 +34,8 @@ export class PerfilPage {
   constructor(
     private fb: FormBuilder,
     private nav: NavController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+    private router: Router
   ) {
     this.form = this.fb.group({
       nombre: [this.profile.nombre, [Validators.required, Validators.minLength(3)]],
@@ -45,6 +47,15 @@ export class PerfilPage {
     });
   }
 
+  ngOnInit() {
+    // Verificar si el usuario está logueado
+    const user = localStorage.getItem('user');  // Verifica si 'user' está en localStorage
+
+    if (!user) {
+      // Si no está logueado, redirigir al login
+      this.router.navigate(['/login']);
+    }
+  }
   openEdit() {
     this.form.reset({ ...this.profile });
     this.editOpen = true;

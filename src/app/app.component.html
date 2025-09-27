@@ -1,8 +1,15 @@
 <ion-app>
-  
-  <app-header></app-header>
-  <div id ="main-content">
+  <!-- Mostrar un loading mientras verificamos el estado de autenticación -->
+  <ion-loading *ngIf="loading" message="Verificando autenticación..."></ion-loading>
+
+  <!-- Mostrar el header solo si el usuario está logueado -->
+  <app-header *ngIf="isLoggedIn && !loading"></app-header>
+
+  <!-- Mostrar el tabbar solo si el usuario está logueado -->
+  <app-tabs *ngIf="isLoggedIn && !loading"></app-tabs>
+
+  <!-- El contenido de la página solo después de verificar la autenticación -->
+  <div id="main-content" *ngIf="!loading">
     <ion-router-outlet></ion-router-outlet>
   </div>
-  <app-tabs></app-tabs>
 </ion-app>

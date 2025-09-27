@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { ToastController } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 type CourseType = 'Obligatorio' | 'FoFu' | 'Electivo' | string;
 
@@ -54,7 +55,17 @@ export class CatalogoPage {
     }
   ];
 
-  constructor(private toastCtrl: ToastController) {}
+  constructor(private toastCtrl: ToastController, private router: Router) {}
+
+  ngOnInit() {
+    // Verificar si el usuario está logueado
+    const user = localStorage.getItem('user');  // Verifica si 'user' está en localStorage
+
+    if (!user) {
+      // Si no está logueado, redirigir al login
+      this.router.navigate(['/login']);
+    }
+  }
 
   trackByCode(_: number, c: Course) { return c.code; }
 
