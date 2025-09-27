@@ -5,27 +5,37 @@ import { BehaviorSubject } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  // Almacenamos el estado de autenticación en un BehaviorSubject para manejarlo reactivamente
+  // Estado de autenticación
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
+  // Estado del rol del usuario (Estudiante o Administrador)
+  private roleSubject = new BehaviorSubject<string>('estudiante'); // Valor predeterminado
+  role$ = this.roleSubject.asObservable();
+
   constructor() {
-    // Al inicializar, verificamos si el usuario ya está logueado desde el localStorage
     const user = localStorage.getItem('user');
-    if (user) {
-      this.isAuthenticatedSubject.next(true); // Si hay usuario, estamos autenticados
+    const role = localStorage.getItem('role'); // Traemos el rol del localStorage
+
+    if (user && role) {
+      this.isAuthenticatedSubject.next(true);
+      this.roleSubject.next(role); // Cargamos el rol desde el localStorage
     }
   }
 
   // Función de login
-  login() {
-    localStorage.setItem('user', 'authenticated');  // Guardamos el estado de autenticación
-    this.isAuthenticatedSubject.next(true); // Emitimos el estado como 'loggeado'
+  login(role: string) {
+    localStorage.setItem('user', 'authenticated');
+    localStorage.setItem('role', role); // Guardamos el rol en el localStorage
+    this.isAuthenticatedSubject.next(true);
+    this.roleSubject.next(role); // Emitimos el rol
   }
 
   // Función de logout
   logout() {
-    localStorage.removeItem('user');  // Eliminamos el estado de autenticación
-    this.isAuthenticatedSubject.next(false); // Emitimos el estado como 'no loggeado'
+    localStorage.removeItem('user');
+    localStorage.removeItem('role'); // Limpiamos el rol
+    this.isAuthenticatedSubject.next(false);
+    this.roleSubject.next(''); // Limpiamos el rol
   }
 }

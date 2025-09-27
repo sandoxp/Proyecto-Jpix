@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthService } from 'src/app/auth';  // Asegúrate de importar el AuthService
 
 @Component({
   selector: 'app-home',
@@ -8,18 +9,16 @@ import { Router } from '@angular/router';
   standalone: false,
 })
 export class HomePage implements OnInit {
-  consulta = '';
+  isAdmin: boolean = false;
+  consulta: string = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
-    // Verificar si el usuario está logueado
-    const user = localStorage.getItem('user');  // Verifica si 'user' está en localStorage
-
-    if (!user) {
-      // Si no está logueado, redirigir al login
-      this.router.navigate(['/login']);
-    }
+    // Verificar el rol del usuario
+    this.authService.role$.subscribe(role => {
+      this.isAdmin = role === 'administrador'; // Si el rol es Administrador, muestra contenido exclusivo
+    });
   }
 
   onBuscar() {

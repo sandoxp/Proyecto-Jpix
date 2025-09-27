@@ -1,23 +1,22 @@
-<!-- Header 
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-    <ion-title>home</ion-title>
+    <ion-title>{{ isAdmin ? 'Bienvenido Administrador' : 'Bienvenido Estudiante' }}</ion-title>
   </ion-toolbar>
 </ion-header>
--->
+
 <ion-content [fullscreen]="true">
   <!-- Título central -->
   <div class="main-title">
     <h1>¿En qué puedo ayudarte?</h1>
   </div>
 
-  <!-- Bloque de opciones -->
+  <!-- Mostrar opciones diferenciadas para el Administrador -->
   <div class="options-box">
-    <p class="options-title">Lo que puedo hacer por ti</p>
+    <p class="options-title">{{ isAdmin ? 'Opciones de Administrador' : 'Lo que puedo hacer por ti' }}</p>
     <div class="options-buttons">
-      <ion-button expand="block" fill="solid" class="option-btn">Organizar tu horario</ion-button>
-      <ion-button expand="block" fill="solid" class="option-btn">Consultar ubicación</ion-button>
-      <ion-button expand="block" fill="solid" class="option-btn">Añadir asignatura</ion-button>
+      <ion-button expand="block" fill="solid" class="option-btn">{{ isAdmin ? 'Gestionar Usuarios' : 'Organizar tu horario' }}</ion-button>
+      <ion-button expand="block" fill="solid" class="option-btn">{{ isAdmin ? 'Ver Reportes' : 'Consultar ubicación' }}</ion-button>
+      <ion-button expand="block" fill="solid" class="option-btn">{{ isAdmin ? 'Configuraciones' : 'Añadir asignatura' }}</ion-button>
     </div>
   </div>
 

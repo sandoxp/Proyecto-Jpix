@@ -1,6 +1,6 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from 'src/app/auth'; // ajusta la ruta si tu servicio está en otra carpeta
+import { AuthService } from 'src/app/auth';  // Asegúrate de importar correctamente el servicio
 
 @Component({
   selector: 'app-header',
@@ -9,22 +9,20 @@ import { AuthService } from 'src/app/auth'; // ajusta la ruta si tu servicio est
   standalone: false,
 })
 export class HeaderComponent implements OnInit {
-  // Texto central
-  @Input() title: string = 'JPIX';
-
-  // Texto del chip (derecha)
-  @Input() roleLabel: string = 'Estudiante'; // o 'Administrador' según tu lógica
-
-  // Avatar junto a JPIX
-  @Input() avatarSrc: string = 'assets/images/assistant-logo.png';
-
-  // Estado del popover
+  title: string = 'JPIX';  // Definimos el título
+  avatarSrc: string = 'assets/images/assistant-logo.png';  // Definimos la fuente del avatar
+  roleLabel: string = 'Estudiante'; // Por defecto, es 'Estudiante'
   roleMenuOpen = false;
   roleMenuEvent: any = null;
 
   constructor(private router: Router, private auth: AuthService) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    // Nos suscribimos al Observable que contiene el rol
+    this.auth.role$.subscribe(role => {
+      this.roleLabel = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Estudiante';
+    });
+  }
 
   // Abre el popover anclado al chip
   openRoleMenu(ev: Event) {
@@ -40,13 +38,12 @@ export class HeaderComponent implements OnInit {
 
   logout() {
     this.roleMenuOpen = false;
-    this.auth.logout();          // emite el cambio y borra localStorage
-    this.router.navigate(['/login']);
+    this.auth.logout(); // Realizamos el logout en el servicio
+    this.router.navigate(['/login']); // Redirigimos al login
   }
 
-  // (Opcionales) Métodos de navegación que ya tenías
-  goToHome()     { this.router.navigate(['/home']); }
+  goToHome() { this.router.navigate(['/home']); }
   goToCatalogo() { this.router.navigate(['/catalogo']); }
-  goToHorario()  { this.router.navigate(['/horario']); }
-  goToPerfil()   { this.router.navigate(['/perfil']); }
+  goToHorario() { this.router.navigate(['/horario']); }
+  goToPerfil() { this.router.navigate(['/perfil']); }
 }

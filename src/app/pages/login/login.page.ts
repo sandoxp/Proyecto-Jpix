@@ -9,10 +9,11 @@ import { AuthService } from 'src/app/auth';  // Importamos el servicio de autent
   standalone: false,
 })
 export class LoginPage {
-  role: string = '';  // El valor predeterminado es vacío hasta que se seleccione el rol
-  rut: string = '';
-  usuario: string = '';   // Solo se usará si el rol es 'administrador'
+  role: string = 'estudiante';  // El valor predeterminado es 'estudiante'
+  email: string = '';
   password: string = '';
+  rut: string = '';  // Definimos la propiedad rut
+  usuario: string = '';  // Definimos la propiedad usuario
 
   constructor(private router: Router, private authService: AuthService) {}
 
@@ -20,15 +21,15 @@ export class LoginPage {
     // Validación de campos según el rol seleccionado
     if (this.role === 'estudiante') {
       if (this.rut && this.password) {
-        this.authService.login(); // Usamos el servicio para registrar el login
-        this.router.navigate(['/home']); // Redirigimos a la página de home después de login
+        this.authService.login('estudiante');  // Usamos el servicio para registrar el login con el rol
+        this.router.navigate(['/home']);
       } else {
         alert('Por favor ingresa un rut y una contraseña válidos');
       }
     } else if (this.role === 'administrador') {
       if (this.usuario && this.rut && this.password) {
-        this.authService.login(); // Usamos el servicio para registrar el login
-        this.router.navigate(['/home']); // Redirigimos a la página de home después de login
+        this.authService.login('administrador');  // Usamos el servicio para registrar el login con el rol
+        this.router.navigate(['/home']);
       } else {
         alert('Por favor ingresa un usuario, rut y una contraseña válidos');
       }
