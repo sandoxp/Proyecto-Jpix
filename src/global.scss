@@ -64,3 +64,9 @@ body {
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
+/* Evita solapamiento del contenido con la tab bar en pantallas móviles */
+@media (max-width: 767.98px) {
+  ion-content {
+    --padding-bottom: 72px; /* ajusta según la altura real de tu tab bar */
+  }
+}
