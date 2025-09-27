@@ -1,0 +1,23 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Chat con Jpix</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="chat-box">
+    <div class="chat-messages">
+      <div *ngFor="let message of assistantMessages" class="chat-message">
+        <p>{{ message }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Campo para ingresar mensaje -->
+  <ion-item>
+    <ion-input [(ngModel)]="userMessage" placeholder="Escribe tu consulta" type="text"></ion-input>
+  </ion-item>
+
+  <!-- Botón para enviar mensaje -->
+  <ion-button expand="full" (click)="onSendMessage()">Enviar</ion-button>
+</ion-content>

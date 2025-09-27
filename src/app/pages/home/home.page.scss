@@ -136,3 +136,36 @@
   margin: 2px 0;
   font-size: 15px;
 }
+
+.chat-box {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  height: 200px;
+  overflow-y: auto;
+  transition: all 0.5s ease; /* Suavizamos la expansión */
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-message {
+  padding: 5px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.chat-message p {
+  margin: 0;
+}
+
+/* Agregar un estado cuando el chat se expande */
+.chat-box.expand {
+  height: 300px; /* Puedes ajustar la altura */
+}
+

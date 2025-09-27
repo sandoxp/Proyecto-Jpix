@@ -37,7 +37,11 @@ const routes: Routes = [
   {
     path: 'registro',
     loadChildren: () => import('./pages/registro/registro.module').then( m => m.RegistroPageModule)
+  },  {
+    path: 'chat',
+    loadChildren: () => import('./pages/chat/chat.module').then( m => m.ChatPageModule)
   }
+
 ];
 
 @NgModule({

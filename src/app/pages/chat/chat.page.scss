@@ -1,0 +1,25 @@
+.chat-box {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+  height: 400px;
+  overflow-y: auto;
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-message {
+  padding: 5px;
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.chat-message p {
+  margin: 0;
+}

@@ -5,12 +5,10 @@
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <!-- Título central -->
   <div class="main-title">
     <h1>¿En qué puedo ayudarte?</h1>
   </div>
 
-  <!-- Mostrar opciones diferenciadas para el Administrador -->
   <div class="options-box">
     <p class="options-title">{{ isAdmin ? 'Opciones de Administrador' : 'Lo que puedo hacer por ti' }}</p>
     <div class="options-buttons">
@@ -20,7 +18,6 @@
     </div>
   </div>
 
-  <!-- Buscador -->
   <div class="search">
     <ion-input
       class="search__input"
@@ -36,7 +33,6 @@
     </ion-button>
   </div>
 
-  <!-- Recomendación de escritura -->
   <section class="suggestion">
     <img
       class="suggestion__avatar"
@@ -55,4 +51,13 @@
       </p>
     </div>
   </section>
+
+  <!-- Chat con el asistente (se expande al ingresar una consulta) -->
+  <div *ngIf="isChatOpen" class="chat-box expand">
+    <div class="chat-messages">
+      <div *ngFor="let message of assistantMessages" class="chat-message">
+        <p>{{ message }}</p>
+      </div>
+    </div>
+  </div>
 </ion-content>
