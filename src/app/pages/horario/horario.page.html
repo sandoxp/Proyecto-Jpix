@@ -6,10 +6,109 @@
 </ion-header>
 -->
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Horario</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="horario-content">
+
+  <!-- Accesibilidad (ejemplo: modo daltonismo) -->
+  <ion-fab vertical="top" horizontal="end" edge>
+    <ion-fab-button size="small" (click)="toggleDaltonismo()" aria-label="Alternar modo de alto contraste">
+      <ion-icon name="eye-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- Título principal -->
+  <h1 class="page-title">Generación de horario</h1>
+
+  <!-- Buscador -->
+  <div class="search-row">
+    <ion-input
+      class="search-input"
+      placeholder="Ingrese su consulta"
+      [(ngModel)]="query"
+      (keyup.enter)="onSearch()">
+    </ion-input>
+
+    <ion-button class="search-btn" (click)="onSearch()" aria-label="Buscar">
+      <ion-icon slot="icon-only" name="search-outline"></ion-icon>
+    </ion-button>
+  </div>
+
+  <div class="layout">
+    <!-- Columna izquierda -->
+    <section class="left-pane">
+      <div class="assistant">
+        <img src="assets/images/assistant-logo.png" alt="JPIX asistente" class="avatar" />
+        <p class="assistant-text">
+          Te presento tu nuevo horario, puedes hacerme consultas acerca de este.
+        </p>
+      </div>
+
+      <ion-button expand="block" size="large" class="cta" (click)="onConsultarClaves()">
+        Consultar claves
+      </ion-button>
+
+      <!-- Leyenda -->
+      <div class="legend">
+        <div class="legend-item">
+          <span class="swatch swatch-obligatorio"></span>
+          <span>Obligatorios</span>
+        </div>
+        <div class="legend-item">
+          <span class="swatch swatch-optativo"></span>
+          <span>Optativos</span>
+        </div>
+        <div class="legend-item">
+          <span class="swatch swatch-fofu"></span>
+          <span>FOFUS</span>
+        </div>
+        <div class="legend-item">
+          <span class="swatch swatch-ingles"></span>
+          <span>Inglés</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Columna derecha: tabla -->
+    <section class="table-wrapper">
+      <div class="table-scroll" role="region" aria-label="Tabla de horario desplazable" tabindex="0">
+        <table class="schedule-table" role="table" aria-label="Horario semanal">
+          <thead>
+            <tr>
+              <th class="th-hour"> </th>
+              <th *ngFor="let day of days">{{ day }}</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let block of blocks">
+              <!-- Bloque / hora -->
+              <td class="td-hour">{{ block }}</td>
+
+              <!-- Celdas por día -->
+              <td *ngFor="let day of days">
+                <div
+                  class="cell"
+                  [ngClass]="getCourseClass(day, block)"
+                  *ngIf="getCourse(day, block) as course; else emptyCell">
+                  <div class="course-code">{{ course.code }} <span class="kind">{{ course.kind }}</span></div>
+                  <div class="course-row"><strong>{{ course.title }}</strong></div>
+                  <div class="course-row">Sala: {{ course.room }}</div>
+                  <div class="course-row">Modo: {{ course.mode }}</div>
+                </div>
+                <ng-template #emptyCell>
+                  <div class="cell empty"></div>
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginador/marcador opcional (como los puntos del mockup) -->
+      <div class="dots">
+        <span class="dot active"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    </section>
+  </div>
 </ion-content>

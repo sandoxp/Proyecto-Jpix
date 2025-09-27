@@ -1,0 +1,199 @@
+/* ===== Paleta/base ===== */
+:host {
+  --bg-page: #ffffff;
+  --text-strong: #1b1b1b;
+  --text-muted: #6b6b6b;
+
+  --legend-obligatorio: #8B8B8B;
+  --legend-optativo: #D3D3D3;
+  --legend-fofu: #82C9F2;
+  --legend-ingles: #B3D8A1;
+
+  --card-bg: #f5f5f5;
+  --border: #d8d8d8;
+
+  --cell-obligatorio: #D3D3D3;
+  --cell-optativo: #F2F2F2;
+  --cell-fofu: #e6f2fd;
+  --cell-ingles: #e1f2d2;
+
+  --avatar-size: 88px;
+}
+
+/* CAMBIO CLAVE: Se ajusta el contenedor principal para que crezca verticalmente */
+.horario-content { 
+  --background: var(--bg-page);
+  height: auto; /* Le decimos al contenedor que su altura se adapte al contenido */
+  min-height: calc(100vh - 56px); /* Opcional: asegura que en páginas cortas ocupe al menos toda la pantalla menos el header */
+  padding-bottom: 40px; /* Añade un poco de espacio al final para que no quede pegado al borde */
+}
+
+/* ===== Título ===== */
+.page-title {
+  font-size: 28px;
+  font-weight: 800;
+  text-align: center;
+  margin: 18px 0 8px;
+  color: var(--text-strong);
+}
+
+/* ===== Buscador ===== */
+.search-row {
+  display: grid;
+  grid-template-columns: 1fr 48px;
+  gap: 10px;
+  align-items: center;
+  max-width: 760px;
+  margin: 0 auto 22px;
+  padding: 0 16px;
+}
+
+.search-input {
+  --background: #eaeaea;
+  --padding-start: 14px;
+  --padding-end: 14px;
+  --border-radius: 8px;
+  height: 48px;
+  border-radius: 8px;
+}
+
+.search-btn { width: 48px; height: 48px; border-radius: 10px; }
+
+/* ===== Layout principal ===== */
+.layout {
+  display: grid;
+  grid-template-columns: 340px auto;
+  gap: 24px;
+  padding: 0 16px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  justify-content: start;
+}
+
+/* ===== Panel izquierdo ===== */
+.left-pane { display: flex; flex-direction: column; gap: 16px; }
+
+.assistant {
+  display: grid;
+  grid-template-columns: var(--avatar-size) 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.avatar {
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.assistant-text { margin: 0; color: var(--text-muted); line-height: 1.35; font-size: 14px; }
+
+.cta { --background: #d1d1d1; --color: #000; border-radius: 10px; font-weight: 700; }
+
+/* Leyenda */
+.legend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+  margin-top: 8px;
+}
+.legend-item { display: flex; align-items: center; gap: 10px; color: var(--text-strong); font-weight: 600; }
+.swatch { width: 44px; height: 28px; border-radius: 6px; display: inline-block; border: 1px solid var(--border); }
+.swatch-obligatorio { background: var(--legend-obligatorio); }
+.swatch-optativo    { background: var(--legend-optativo); }
+.swatch-fofu         { background: var(--legend-fofu); }
+.swatch-ingles       { background: var(--legend-ingles); }
+
+/* ===== Tabla ===== */
+.table-wrapper { 
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  padding: 12px;
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.25;
+  table-layout: fixed;
+}
+
+.schedule-table thead th {
+  background: #f3f3f3;
+  text-align: center;
+  padding: 8px 6px;
+  font-weight: 700;
+  color: var(--text-strong);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.th-hour, .td-hour {
+  width: 60px;
+  text-align: center;
+  font-weight: 700;
+  background: #fafafa;
+  border-right: 1px solid var(--border);
+}
+
+.schedule-table td {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+  padding: 10px;
+}
+
+.schedule-table tr:last-child td { border-bottom: 0; }
+
+.cell {
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px;
+  border: 1px solid #ececec;
+  min-height: 54px;
+}
+
+.cell.empty { background: transparent; border: 0; }
+
+.course-code { font-weight: 800; margin-bottom: 2px; }
+.kind { font-weight: 800; margin-left: 6px; }
+.course-row { font-size: 11px; color: #333; }
+
+/* Colores en celdas específicas */
+.cell.obligatorio { background: var(--cell-obligatorio); }
+.cell.optativo    { background: var(--cell-optativo); }
+.cell.fofu         { background: var(--cell-fofu); }
+.cell.ingles       { background: var(--cell-ingles); }
+
+/* ===== Ajustes RESPONSIVE para móvil ===== */
+@media (max-width: 1200px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #bcbcbc transparent;
+  }
+
+  .table-wrapper::-webkit-scrollbar { height: 10px; }
+  .table-wrapper::-webkit-scrollbar-track { background: transparent; }
+  .table-wrapper::-webkit-scrollbar-thumb { background: #bcbcbc; border-radius: 999px; }
+  
+  .schedule-table {
+    min-width: 900px;
+  }
+}
