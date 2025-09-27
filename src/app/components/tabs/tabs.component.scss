@@ -1,15 +1,29 @@
-/* Evita que el contenido quede tapado por el tab bar cuando está visible (móvil) */
-@media (max-width: 767.98px) {
-  ion-tabs ion-content {
-    --padding-bottom: 64px; /* Ajusta si tu tab bar es más alta/baja */
-  }
+/* === Tabs visibles solo en dispositivos móviles (ancho < 768px) === */
+
+/* Por defecto el host del componente existe */
+:host {
+  display: block;
 }
 
-/* Si prefieres forzar ocultamiento por CSS además de la clase (no necesario, solo refuerzo) */
-/*
+/* Oculta el componente completo en pantallas de escritorio */
 @media (min-width: 768px) {
-  ion-tab-bar {
+  :host {
     display: none !important;
   }
 }
-*/
+
+/* Fija la barra de tabs al fondo en móvil */
+ion-tab-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* opcional: eleva por si hay otros elementos fijos */
+  z-index: 1000;
+}
+
+/* Evita que el contenido sea tapado por la barra en móvil */
+@media (max-width: 767.98px) {
+  /* Si usas ion-content en las páginas, este padding-bottom global lo pondremos en global.scss.
+     Aquí lo dejamos como referencia por si llegas a usar ion-content dentro de este componente. */
+}
