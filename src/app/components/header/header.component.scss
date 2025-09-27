@@ -7,29 +7,32 @@ ion-toolbar {
   --color: #fff;
   position: relative;
   min-height: 56px;
+  display: flex;
+  justify-content: center; /* Centrado total de todos los elementos */
+  align-items: center; /* Alinea verticalmente el contenido */
+  padding: 0 16px; /* Añadir un poco de padding para evitar que el contenido se pegue a los bordes */
 }
 
 /* Centrado absoluto para JPIX + avatar */
 .brand {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
-  align-items: center;
-  gap: 8px;
-  pointer-events: none; /* no bloquea clicks del toolbar */
+  align-items: center; /* Centrado vertical */
+  justify-content: center; /* Centrado horizontal */
+  gap: 12px; /* Espacio entre el logo y el avatar */
 }
 
 .logo {
   font-weight: 800;
-  font-size: 1.4rem;
+  font-size: 1.6rem; /* Tamaño del logo */
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  color: white; /* Color del texto */
 }
 
 .brand-avatar {
-  width: 28px;
-  height: 28px;
+  width: 32px; /* Tamaño del avatar */
+  height: 32px;
+  border-radius: 50%; /* Avatar redondeado */
 }
 
 /* Chip "Estudiante" (derecha) */
@@ -42,6 +45,7 @@ ion-toolbar {
   padding-inline: 8px;
   margin-inline-end: 4px;
 }
+
 .user-chip ion-icon {
   margin-right: 6px;
 }

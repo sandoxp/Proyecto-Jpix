@@ -82,3 +82,15 @@
   .info-chip { background: #d0d0d0; }
   .flat-gray-btn { --background: #bdbdbd; --box-shadow: 0 3px 0 #9d9d9d; }
 }
+
+.main-title {
+  text-align: center; /* Centra el texto horizontalmente */
+  margin-top: 20px; /* Espacio superior opcional */
+}
+
+h1 {
+  font-size: 2rem; /* Ajusta el tamaño de fuente */
+  font-weight: bold;
+  color: var(--ion-color-dark); /* O el color que prefieras */
+  margin: 0; /* Elimina márgenes extra si los hay */
+}

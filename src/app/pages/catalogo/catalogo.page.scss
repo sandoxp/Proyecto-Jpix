@@ -123,3 +123,16 @@
   .catalog-slab { background: #5a5a5a; }
   .course-card .row { background: #cfcfcf; }
 }
+
+.main-title {
+  text-align: center; /* Centra el texto horizontalmente */
+  margin-top: 20px; /* Espacio superior opcional */
+}
+
+h1 {
+  font-size: 2rem; /* Ajusta el tamaño de fuente */
+  font-weight: bold;
+  color: var(--ion-color-dark); /* O el color que prefieras */
+  margin: 0; /* Elimina márgenes extra si los hay */
+}
+
