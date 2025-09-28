@@ -15,10 +15,12 @@ Asistente virtual académico para la preinscripción de asignaturas en la PUCV.
    - [Roles del Sistema](#roles-del-sistema)  
    - [Requerimientos Funcionales](#requerimientos-funcionales)  
    - [Requerimientos No Funcionales](#requerimientos-no-funcionales)  
-3. [Arquitectura de la Información](#arquitectura-de-la-información)  
+3. [Definición de la Navegación y Experiencia de Usuario (UX)](#definición-de-la-navegación-y-experiencia-de-usuario-ux)  
+   - [Flujo de Navegación](#flujo-de-navegación-descripción-textual)  
+   - [Experiencia de Usuario Esperada](#experiencia-de-usuario-esperada)  
+   - [Principios de UX Aplicados](#principios-de-ux-aplicados)  
+   - [Patrones de Diseño UX Utilizados](#patrones-de-diseño-ux-utilizados)   
 4. [Diseño de Prototipos](#diseño-de-prototipos)  
-5. [Librerías en Angular](#librerías-usadas-con-angular)  
-6. [Tecnologías](#tecnologías)  
 
 ---
 
@@ -100,14 +102,10 @@ Jpix está diseñado para mejorar la experiencia académica de los estudiantes, 
   El código está modularizado y documentado, de modo que se puedan añadir nuevas reglas académicas o sedes sin afectar toda la aplicación.  
 
 ---
-
-
-
 ### Definición de la navegación y experiencia de usuario (UX)
----
 
 ### Objetivo
-Diseñar una experiencia de usuario clara, eficiente y accesible, donde el estudiante interactúe con nuestro asistente virtual **Jpix** y pueda acceder a vistas gráficas (catálogo, calendario, alertas). La navegación debe permitir que los usuarios encuentren fácilmente lo que buscan, comprendan cómo moverse en la aplicación y completen sus tareas sin confusión.
+Diseñar una experiencia de usuario clara, eficiente y accesible, donde el estudiante interactúe con nuestro asistente virtual Jpix y pueda acceder a vistas gráficas (catálogo, horario, alertas, recomendaciones). La navegación debe permitir que los usuarios encuentren fácilmente lo que buscan, comprendan cómo moverse en la aplicación y completen sus tareas sin confusión.
 
 ---
 
@@ -117,13 +115,15 @@ Diseñar una experiencia de usuario clara, eficiente y accesible, donde el estud
 
 >**Link de diagrama de flujo**: https://lucid.app/lucidchart/dec4816f-a01b-418d-81e2-946b6cb97968/edit?viewport_loc=-8178%2C-2077%2C11258%2C5060%2C0_0&invitationId=inv_1613f2b7-671c-4d7a-b23e-de70bc6eaae9
 
+![Flujo de navegación](src/assets/images/flujo_navegacion.png)
+
 1. **Inicio (Comienzo)**  
    - Pantalla de bienvenida en la cuál el usuario debe de seleccionar su rol para poder utilizar JPIX.  
 
 2. **Selección de Rol**  
    - El usuario decide si entra como **Estudiante** o **Administrador**. En caso de que este no tenga cuenta se muestra la opción para registrarse.  
 
-2.1. **Estudiante**  
+    2.1. **Estudiante**  
    - ***Inicio de sesión inválida***
       - Aparece un mensaje indicando que se ingresaron los datos incorrectos y el sistema permitirá que el usuario reintente ingresar sus datos. 
    - ***Inicio de sesión válido***  
@@ -155,7 +155,7 @@ Diseñar una experiencia de usuario clara, eficiente y accesible, donde el estud
             - **Cumple con las reglas académica**: El sistema genera un mensaje indicando que el horario fue generado existosamente cumpliendo con todas las verificaciones.
               - Una vez generado el horario el sistema da la opción de refinar la propuesta de horario para que sea más precisa y cómoda para el usuario. En caso que si quiera refinar la propuesta se realizará nuevamente todo el proceso que ya había realizado verificando si cumple con todas las variantes, pero si no se desea realizar una modificación, el sistema da por finalizado el proceso. 
 
-2.2. **Administrador**  
+    2.2. **Administrador**  
    - ***Inicio de sesión inválida***
       - Aparece un mensaje indicando que se ingresaron los datos incorrectos y el sistema permitirá que el usuario reintente ingresar sus datos. 
    - ***Inicio de sesión válido***  
@@ -168,9 +168,9 @@ Diseñar una experiencia de usuario clara, eficiente y accesible, donde el estud
       
       Todas estas secciones al momento de guardar sus cambios respectivos se van actualizando independientemente las reglas académicas que deben de cumplir los estudiantes para poder inscribir asignaturas. Y una vez actualizada se da por finalizado el proceso de modificación.
 
-2.3. **Sin cuenta**
-  - El usuario pasa a la página de Registro en la cual deberá de rellenar los campos pedidos por el formulario.
-  - Al ingresar sus datos el sistema deberá de preguntarse si existe el RUT en la base de datos.
+    2.3. **Sin cuenta**
+    - El usuario pasa a la página de Registro en la cual deberá de rellenar los campos pedidos por el formulario.
+    - Al ingresar sus datos el sistema deberá de preguntarse si existe el RUT en la base de datos.
     - **Caso "existe usuario"**: El sistema al ya tener guardado el RUT en la base de datos de la universidad mostrará al usuario un mensaje indicando que ya existe su cuenta, redirigiendo al usuario a la pantalla de selección de rol para que ingrese correctamente. 
     - **Caso "no existe usuario"**: Si el RUT no se encuentra en la base de datos de la universidad el sistema se pregunta si el RUT ingresado pertenece a la universidad. 
       - **RUT inválido**: El sistema impimirá un mensaje indicando que el usuario no pertence a la comunidad universitaria, dirigiendolo a la Pantalla de Bienvenida.
@@ -182,30 +182,33 @@ Diseñar una experiencia de usuario clara, eficiente y accesible, donde el estud
 
 La experiencia de usuario (UX) es fundamental en el diseño de Jpix, ya que busca ofrecer una interfaz intuitiva, accesible y eficiente. El objetivo es que los usuarios puedan navegar por la aplicación de manera sencilla y agradable, maximizando la eficiencia en el proceso de construcción de horarios y consultas, mientras garantizan un acceso igualitario para todas las personas, independientemente de sus capacidades.
 
+Además, Jpix considera el contexto real de los estudiantes que deben inscribir ramos en plazos cortos, revisar catálogos bajo presión de tiempo y, en la mayoría de los casos, utilizan dispositivos móviles. Por ello, la aplicación prioriza interacciones simples, claras y sin pasos innecesarios.
+
 - **Eficiencia**  
   - El chat central permite realizar acciones con pocos pasos.  
-  - Accesos directos a catálogo, calendario y validaciones.  
+  - Accesos directos a funciones clave como catálogo, horario y configuraciones.
   - Evita navegación confusa.  
 
 - **Accesibilidad**  
   - Contraste suficiente (WCAG AA).  
-  - Navegación con teclado.  
+  - Navegación por teclado.  
   - Etiquetas claras en formularios.  
   - Diseño responsivo (usable en móvil y escritorio).  
-  - Texto alternativo en íconos e imágenes.  
+  - Indicadores visuales de color, pensando en usuarios con daltonismo.
 
 - **Estética**  
   - Interfaz minimalista, coherente y clara.  
-  - Uso de colores semánticos (verde=OK, amarillo=advertencia, rojo=error).  
-  - Iconografía universal (lupa=buscar, calendario=horario, chat=asistente).  
+  - Iconografía universal (lupa=buscar, ojo=cambio de colores, chat=asistente).  
   - Retroalimentación visual y textual inmediata en cada acción.  
 
 ---
 
 ### Principios de UX Aplicados
 
+Jpix asegura que cada decisión de diseño esté orientada a facilitar la interacción del usuario, garantizando una experiencia clara, consistente y accesible. Estos principios permiten que la plataforma no solo cumpla con sus funciones técnicas, sino que también sea intuitiva, eficiente y agradable de usar.
+
 - **Usabilidad**: interfaz intuitiva, chat + botones rápidos, navegación simple.  
-- **Accesibilidad**: cumplimiento de WCAG (Perceptible, Operable, Comprensible, Robusto).  
+- **Accesibilidad**: cumplimiento de WCAG (Perceptible, Operable, Comprensible, Robusto). 
 - **Consistencia**: estilos, formularios y componentes mantienen coherencia visual.  
 - **Retroalimentación**: mensajes y alertas inmediatas (ej: choques, traslados inviables, sobrecarga IRA).  
 - **Diseño adaptativo**: interfaz responsive en dispositivos móviles y web.  
@@ -214,6 +217,8 @@ La experiencia de usuario (UX) es fundamental en el diseño de Jpix, ya que busc
 
 ### Patrones de Diseño UX Utilizados
 
+El uso de patrones de diseño permite ofrecer una experiencia predecible para los usuarios, facilitando la navegación. Estos patrones garantizan coherencia visual, interacción fluida y reutilización de componentes que mejoran la eficiencia y la consistencia en tanto en la página web como en la aplicación.
+
 - **Chat central con widgets embebidos**: el asistente responde con vistas gráficas (mini calendario, listado filtrado, paneles de alerta).  
 - **Cards layout**: cada curso mostrado como tarjeta con info clave (docente, sede, horario, créditos).  
 - **Calendar view**: horario semanal con bloques coloreados por tipo de curso.  
@@ -221,24 +226,11 @@ La experiencia de usuario (UX) es fundamental en el diseño de Jpix, ya que busc
 - **Formularios accesibles**: login y registro con etiquetas, validaciones y ayudas contextuales.  
 
 ---
+### Diseño de prototipos
 
-### Accesibilidad (WCAG 2.1) en la UI
+El diseño de prototipos tiene como objetivo visualizar y estructurar la interacción del usuario con la plataforma antes de su implementación definitiva, permitiendo evaluar la navegación, la accesibilidad y la experiencia general. Para esto, creamos mockups detallados en Figma que representan las pantallas principales tanto para estudiantes como para administradores, tanto para la versión web como para la aplicación.
 
-- **Perceptible**:  
-  - Contraste adecuado y fuentes legibles.  
-  - Texto alternativo en íconos e imágenes.  
+> ***Link mockups web y app***: https://www.figma.com/design/pniqeFISvVNmQnaMYiY1nb/Jpix-WEB?node-id=0-1&t=LaGtmMtL9AkkSs3f-1
 
-- **Operable**:  
-  - Navegación por teclado en todos los formularios y pantallas.  
-  - Orden lógico de tabulación.  
-
-- **Comprensible**:  
-  - Lenguaje claro y simple en mensajes.  
-  - Estructura de encabezados lógica (H1 → H2 → H3).  
-  - Mensajes de error específicos y contextualizados.  
-
-- **Robusto**:  
-  - Compatible con tecnologías de asistencia (atributos ARIA).  
-  - Marcado semántico correcto para formularios y navegación.  
 
 ---
