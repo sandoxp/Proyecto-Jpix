@@ -42,7 +42,7 @@ Jpix está diseñado para mejorar la experiencia académica de los estudiantes, 
 
 ### Roles del Sistema  
 - **Estudiante**: consulta en lenguaje natural, explora catálogo y construye su horario.  
-- **Administrador**: mantiene el catálogo y define reglas y parámetros del sistema.  
+- **Administrador**: mantiene el catálogo, define reglas y parámetros del sistema.  
 
 ---
 
@@ -50,18 +50,17 @@ Jpix está diseñado para mejorar la experiencia académica de los estudiantes, 
 
 #### Rol Estudiante  
 - **RF-EST-01: Consulta en lenguaje natural**  
-  El estudiante escribe mensajes en un chat (“Organiza mi horario”, “Agrega Inglés II sección A”).  
-  El sistema identifica una sola intención por mensaje y ejecuta la acción correspondiente o solicita aclaración si la intención es ambigua.  
+  El estudiante escribe mensajes en un chat (“Organiza mi horario”, “Agrega Inglés II”).  
+  El sistema identifica una sola consulta por mensaje y ejecuta la acción correspondiente o solicita aclaración si la consulta es ambigua.  
 
 - **RF-EST-02: Explorar catálogo de asignaturas**  
-  El estudiante visualiza el catálogo con: código, nombre, sección, docente, sede, sala, bloques y créditos.  
-  Puede filtrar por tipo, sede y día, y ordenar por código o nombre.  
+  El estudiante visualiza el catálogo con: nombre de la asignatura, código, tipo, docente, sede, clave, tasa de aprobación y créditos.  
 
 - **RF-EST-03: Validación automática de reglas académicas**  
   El sistema valida, durante la construcción del horario: prerrequisitos, inclusión de reprobadas/atrasadas, cumplimiento de FOFU e Inglés, y límite de créditos según IRA.  
 
 - **RF-EST-04: Detección de choques de horario**  
-  El sistema detecta solapes de tiempo en un mismo día entre dos o más secciones y muestra un aviso con el conflicto identificado.  
+  El sistema detecta choques de tiempo en un mismo día entre dos o más asignaturas y muestra un aviso con el conflicto identificado.  
 
 - **RF-EST-05: Detección de traslados inviables**  
   El sistema evalúa si es posible trasladarse entre sedes en bloques consecutivos, usando una matriz de tiempos mínimos.  
@@ -69,13 +68,11 @@ Jpix está diseñado para mejorar la experiencia académica de los estudiantes, 
 
 - **RF-EST-06: Generación de propuestas de horario con preferencias**  
   El sistema genera propuestas de horario sin choques y cumpliendo reglas académicas.  
-  Permite aplicar preferencias como “menos carga”, “evitar traslados”, “prefiero sede X” o “sin clases viernes”.  
+  Permite aplicar preferencias como “menos carga”, “evitar traslados” o “prefiero sede X”.  
 
 #### Rol Administrador  
 - **RF-ADM-01: Gestión de catálogo y parámetros**  
-  El administrador crea, edita o elimina cursos, secciones, sedes y salas.  
-  Además, configura reglas académicas (prerrequisitos, obligatoriedad de reprobadas/atrasadas, FOFU/Inglés, límite de créditos por IRA) y define la matriz de traslados.  
-
+  El administrador crea, edita o elimina cursos, sedes, traslados y reglas académicas.  
 ---
 
 ### Requerimientos No Funcionales  
@@ -84,19 +81,19 @@ Jpix está diseñado para mejorar la experiencia académica de los estudiantes, 
   La interfaz cumple principios de accesibilidad: contraste adecuado, foco visible, navegación por teclado y uso de etiquetas ARIA en componentes interactivos.  
 
 - **RNF-02: Usabilidad**  
-  La interfaz es clara y coherente, con navegación simple, retroalimentación visual ante acciones, y uso de componentes Ionic (tabs, headers, modals, alerts, lists).  
+  La interfaz es clara y coherente, con navegación simple, retroalimentación visual inmediata, y uso de componentes Ionic (tabs, headers, modals, alerts, lists).  
 
 - **RNF-03: Seguridad**  
-  El sistema protege la información de los usuarios mediante autenticación con JWT, encriptación de contraseñas con bcrypt y configuración segura de CORS.  
+  El sistema garantiza la protección básica de la información de los usuarios, considerando prácticas de seguridad en el manejo de datos y en la comunicación entre cliente y servidor. 
 
 - **RNF-04: Privacidad**  
-  Los datos académicos se manejan con confidencialidad. En modo demo se utilizan datos ficticios; en producción se restringe la recopilación al mínimo necesario.  
+  Los datos académicos se manejan con confidencialidad. En el modo actual se utilizan datos ficticios.  
 
 - **RNF-05: Portabilidad y compatibilidad**  
-  La aplicación funciona en navegadores modernos y se adapta a dispositivos móviles y de escritorio mediante diseño responsive.  
+  El sistema debe ejecutarse en navegadores modernos y adaptarse a distintos dispositivos, garantizando una experiencia funcional tanto en computadores como en dispositivos móviles.  
 
-- **RNF-06: Disponibilidad (PWA)**  
-  La aplicación es instalable como PWA y permite uso con conectividad limitada, mostrando el catálogo cacheado y el horario guardado.  
+- **RNF-06: Disponibilidad**  
+  El sistema debe estar disponible para los usuarios mientras cuenten con conexión a internet, asegurando un acceso estable a las funciones principales.
 
 - **RNF-07: Mantenibilidad**  
   El código está modularizado y documentado, de modo que se puedan añadir nuevas reglas académicas o sedes sin afectar toda la aplicación.  
