@@ -13,18 +13,27 @@
     <p class="options-title">{{ isAdmin ? 'Opciones de Administrador' : 'Lo que puedo hacer por ti' }}</p>
     <div class="options-buttons">
       <!-- Si es estudiante, abre el chat con la consulta. Si es admin, no hace nada (no rompemos su flujo). -->
-      <ion-button expand="block" fill="solid" class="option-btn"
-        (click)="!isAdmin && goToChat('Jpix, quiero que organices mi horario para este semestre')">
+      <ion-button
+        expand="block"
+        fill="solid"
+        class="option-btn"
+        (click)="!isAdmin && goToChatFlow('organizar', 'Jpix, organiza mi horario')">
         {{ isAdmin ? 'Gestionar Usuarios' : 'Organizar tu horario' }}
       </ion-button>
 
-      <ion-button expand="block" fill="solid" class="option-btn"
-        (click)="!isAdmin && goToChat('Jpix, quiero saber a qué distancia está Sausalito de Casa Central')">
+      <ion-button
+        expand="block"
+        fill="solid"
+        class="option-btn"
+        (click)="!isAdmin && goToChatFlow('ubicacion', 'Consultar ubicación de sedes')">
         {{ isAdmin ? 'Ver Reportes' : 'Consultar ubicación' }}
       </ion-button>
 
-      <ion-button expand="block" fill="solid" class="option-btn"
-        (click)="!isAdmin && goToChat('Jpix, añade Inglés II sección A')">
+      <ion-button
+        expand="block"
+        fill="solid"
+        class="option-btn"
+        (click)="!isAdmin && goToChatFlow('agregar', 'Añadir asignatura')">
         {{ isAdmin ? 'Configuraciones' : 'Añadir asignatura' }}
       </ion-button>
     </div>

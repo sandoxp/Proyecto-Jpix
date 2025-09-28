@@ -23,18 +23,66 @@ export class ChatService {
   // Para "ubicación"
   private sedeOrigen?: string;
 
-  // ====== API compatible con tu ChatPage ======
+  // ====== API ======
+  /** Llama a esto si quieres empezar "en limpio" (por ejemplo, al abrir el chat desde Home). */
+  resetConversation(): void {
+    this.reset();
+  }
+
+  startFlow(flow: Flow): string {
+    this.reset();
+    switch (flow) {
+      case 'organizar':
+        this.flow = 'organizar';
+        return this.handleOrganizarStart(); // saluda y pregunta automática vs manual
+      case 'ubicacion':
+        this.flow = 'ubicacion';
+        // Ponemos el step para que pregunte por sedes siempre
+        this.step = 'ubicacion.awaiting_sedes';
+        return '¡Hola! ¿De qué sedes quieres saber la **ubicación o distancia**? (por ejemplo: "Sausalito y Casa Central")';
+      case 'agregar':
+        this.flow = 'agregar';
+        this.step = 'none';
+        return '¡Hola! ¿Qué asignatura deseas inscribir? (por ejemplo: "Inglés II sección A" o "ING-102 A")';
+      default:
+        this.reset();
+        return '¿Quieres **organizar tu horario**, **consultar ubicación** o **añadir una asignatura**?';
+    }
+  }
+
+  /** API usada por tu ChatPage: retorna un string de respuesta. */
   getResponse(userMessage: string): string {
     const raw = (userMessage || '').trim();
     const t = this.norm(raw);
 
-    // Permite reiniciar el flujo fácilmente
+    // Comandos para reiniciar rápido
     if (this.includesAny(t, ['cancelar', 'reiniciar', 'reset', 'volver'])) {
       this.reset();
       return 'Listo, reinicié la conversación. ¿Quieres **organizar tu horario**, **consultar ubicación** o **añadir una asignatura**?';
     }
 
-    // 1) Si estoy esperando algo específico, manejo ese paso primero
+    // -------- PRIMERA PRIORIDAD: ¿el mensaje trae una NUEVA intención fuerte? --------
+    const wantsOrganizar = this.isOrganizarIntent(t);
+    const wantsUbicacion = this.isUbicacionIntent(t);
+    const wantsAgregar   = this.isAgregarIntent(t);
+    if (wantsOrganizar || wantsUbicacion || wantsAgregar) {
+      // Siempre empezamos el flujo solicitado, aunque hubiese un paso pendiente.
+      this.step = 'none';
+      if (wantsOrganizar) {
+        this.flow = 'organizar';
+        return this.handleOrganizarStart();
+      }
+      if (wantsUbicacion) {
+        this.flow = 'ubicacion';
+        return this.handleUbicacionStart(raw);
+      }
+      if (wantsAgregar) {
+        this.flow = 'agregar';
+        return this.handleAgregarStart(raw);
+      }
+    }
+
+    // -------- SEGUNDA PRIORIDAD: si hay un paso pendiente, lo atendemos --------
     if (this.step === 'organizar.awaiting_choice') {
       return this.handleOrganizarChoice(t);
     }
@@ -48,32 +96,16 @@ export class ChatService {
       return this.handleAgregarConfirm(t);
     }
 
-    // 2) Si no hay paso pendiente, detecto intención inicial
-    if (this.isOrganizarIntent(t)) {
-      this.flow = 'organizar';
-      return this.handleOrganizarStart();
-    }
-
-    if (this.isUbicacionIntent(t)) {
-      this.flow = 'ubicacion';
-      return this.handleUbicacionStart(raw);
-    }
-
-    if (this.isAgregarIntent(t)) {
-      this.flow = 'agregar';
-      return this.handleAgregarStart(raw);
-    }
-
-    // 3) Fallback
+    // -------- Fallback (sin contexto) --------
     return 'Te ayudo con eso. ¿Quieres **organizar tu horario**, **consultar ubicación** o **añadir una asignatura**?';
   }
 
-  // ====== Detectores de intención (mensaje de arranque) ======
+  // ====== Detectores de intención (arranque) ======
   private isOrganizarIntent(t: string): boolean {
     return this.includesAny(t, ['organiza', 'organices', 'horario']);
   }
   private isUbicacionIntent(t: string): boolean {
-    return this.includesAny(t, ['distancia', 'ubicacion', 'ubicación', 'sede']);
+    return this.includesAny(t, ['distancia', 'ubicacion', 'ubicación', 'sede', 'sedes']);
   }
   private isAgregarIntent(t: string): boolean {
     return this.includesAny(t, ['añade', 'anade', 'agrega', 'inscribir', 'inscribe']);
@@ -83,7 +115,7 @@ export class ChatService {
   private handleOrganizarStart(): string {
     const student = this.assistantService.getStudentData();
 
-    // Normaliza "semester": lo trato como número solo si está entre 1 y 12.
+    // Normalizo semester: número 1..12 -> sugerencias por semestre, si no -> genéricas
     const parsed = Number((student as any).semester);
     const isSemNumber = Number.isFinite(parsed) && parsed >= 1 && parsed <= 12;
 
@@ -102,19 +134,13 @@ export class ChatService {
   }
 
   private handleOrganizarChoice(t: string): string {
-    // Acepto muchas variantes
     const isAuto = this.includesAny(t, [
-      'auto',
-      'automatica',
-      'automático',
-      'automatico',
-      'propuesta automatica',
-      'propuesta automática',
+      'auto', 'automatica', 'automático', 'automatico',
+      'propuesta automatica', 'propuesta automática'
     ]);
     const isManual = this.includesAny(t, ['manual', 'manualmente']);
 
     if (isAuto || t === 'si' || t === 'sí') {
-      // Si dijo "sí" sin especificar, asumimos automática por defecto
       this.step = 'organizar.awaiting_prefs';
       return 'Perfecto, generaré una propuesta **automática** sin choques y respetando prerequisitos. ¿Tienes preferencias? (ej: "menos carga", "evitar traslados", "sin clases viernes"). Si prefieres **manual**, dímelo ahora.';
     }
@@ -128,7 +154,6 @@ export class ChatService {
   }
 
   private handleOrganizarPrefs(raw: string): string {
-    // Aquí solo confirmamos preferencias (demo)
     this.step = 'none';
     return `Anotado: "${raw}". Generaré una propuesta considerando eso (demo). ¿Quieres que te muestre el **borrador** o agregar ramos **manual** ahora?`;
   }
@@ -191,7 +216,6 @@ export class ChatService {
     for (const s of this.CAMPUSES) {
       if (t.includes(this.norm(s))) found.push(s);
     }
-    // quita duplicados
     return [...new Set(found)];
   }
 
@@ -221,7 +245,6 @@ export class ChatService {
   private handleAgregarConfirm(t: string): string {
     if (t === 'si' || t === 'sí') {
       const name = this.pendingCourseName ?? 'la asignatura';
-      // Aquí podrías llamar a un ScheduleService para guardar de verdad.
       this.pendingCourseName = undefined;
       this.step = 'none';
       return `Listo, **${name}** quedó en tu borrador. ¿Quieres **agregar otro** ramo o **ver el horario**?`;

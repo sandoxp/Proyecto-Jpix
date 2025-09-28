@@ -27,6 +27,15 @@ export class HomePage implements OnInit {
       this.isAdmin = role === 'administrador';
     });
   }
+  // dentro de HomePage
+  goToChatFlow(flow: 'organizar' | 'ubicacion' | 'agregar', prompt?: string) {
+    this.router.navigate(['/chat'], {
+      state: {
+        startFlow: flow,
+        userQuery: prompt ?? '' // opcional, por si quieres también mostrar el texto del botón como "Tú: ..."
+    }
+  });
+  }
 
   // Abrir el chat con una consulta predefinida desde los botones
   goToChat(query: string) {
