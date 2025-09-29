@@ -12,6 +12,9 @@
 // importamos primero nuestras variables y mixins personalizados
 @import 'theme/variables.scss';
 
+:root {
+  color-scheme: light;
+}
 
 #main-content{
     height : 100%;
@@ -23,6 +26,7 @@
 body {
   font-family: var(--ion-font-family);
   background: var(--ion-background-color);
+  color: var(--ion-text-color);
 }
 
 // clase que usamos para una sombra suave y bordes redondeados, usada en Cards y contenedores
@@ -63,7 +67,8 @@ body {
 
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+/* @import "@ionic/angular/css/palettes/dark.system.css"; */
+
 /* Evita solapamiento del contenido con la tab bar en pantallas móviles */
 @media (max-width: 767.98px) {
   ion-content {
