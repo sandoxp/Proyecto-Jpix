@@ -1,4 +1,4 @@
-# Jpix — Backend (EP 2.1)
+# Jpix — Informe 2 (EP 2.1)
 
 **Objetivo del hito:** levantar el backend base con **Node.js + Express**, listo para crecer en EP 2.2–2.6 sin reordenar nada.  
 Incluye middlewares, versionado de API y un **healthcheck**.
@@ -9,9 +9,6 @@ JPIX-PROYECTO/
 ├─ Jpix/           # Frontend (Ionic + Angular)
 └─ jpix-backend/   # Backend (Node + Express)  ← este README
 ```
-
-> Si aún no es monorepo, moveremos el `.git` a la raíz más adelante. Por ahora, este README cubre el backend.
-
 ---
 
 ## ✅ Requisitos
