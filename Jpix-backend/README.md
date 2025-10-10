@@ -179,3 +179,290 @@ Opcional:
 git tag ep-2.1
 git push --tags
 ```
+
+# Jpix — Informe 2 (EP 2.2)
+
+**Objetivo del hito:**  
+Configurar la **base de datos relacional con PostgreSQL** e integrarla al backend Express mediante **Sequelize ORM**.  
+Incluye conexión mediante `.env`, creación de usuario/base local, migraciones y seeders.
+
+---
+
+## 📦 Estructura del repo (monorepo)
+
+```
+JPIX-PROYECTO/
+├─ Jpix/                # Frontend (Ionic + Angular)
+└─ jpix-backend/        # Backend (Node + Express + PostgreSQL)
+```
+
+---
+
+## ✅ Requisitos
+
+- Node.js 18+ y npm  
+- PostgreSQL 14 o superior (idealmente v18)  
+- pgAdmin 4 (opcional, para administrar la base visualmente)  
+- (Opcional) Postman o Insomnia para probar la API  
+
+---
+
+## 🧱 Instalación y configuración de PostgreSQL (solo primera vez)
+
+1. **Descargar PostgreSQL** desde  
+   👉 [https://www.postgresql.org/download/](https://www.postgresql.org/download/)
+
+2. **Instalar** dejando las opciones por defecto:
+   - Usuario administrador: `postgres`
+   - Contraseña: (elige una y recuérdala)
+   - Puerto: `5432`
+   - Incluye **pgAdmin 4**
+
+3. **Crear usuario y base de datos del proyecto**  
+   Abrir `psql` o el panel de consultas de pgAdmin y ejecutar:
+
+   ```sql
+   CREATE ROLE jpix_user WITH LOGIN PASSWORD 'admin123';
+   ALTER ROLE jpix_user CREATEDB;
+   CREATE DATABASE jpix_db OWNER jpix_user;
+   GRANT ALL PRIVILEGES ON DATABASE jpix_db TO jpix_user;
+   ```
+
+**📌 Datos de conexión**
+
+| Campo | Valor |
+|-------|--------|
+| Usuario | `jpix_user` |
+| Contraseña | `admin123` |
+| Base de datos | `jpix_db` |
+| Puerto | `5432` |
+
+---
+
+## ⚙️ Configuración del entorno (.env)
+
+Cada integrante debe tener su propio archivo `.env` dentro de `jpix-backend/`:
+
+```bash
+NODE_ENV=development
+PORT=3000
+
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_USER=jpix_user
+DB_PASS=admin123
+DB_NAME=jpix_db
+DB_DIALECT=postgres
+```
+
+⚠️ El `.env` **no se sube** al repositorio.  
+Solo se sube `.env.example` sin la contraseña real.
+
+---
+
+## 🧩 Configuración de Sequelize
+
+**config/config.js**
+```js
+require('dotenv').config();
+
+module.exports = {
+  development: {
+    username: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASS || '',
+    database: process.env.DB_NAME || 'jpix_db',
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: process.env.DB_PORT || 5432,
+    dialect: process.env.DB_DIALECT || 'postgres'
+  },
+  test: {
+    username: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASS || '',
+    database: process.env.DB_NAME_TEST || 'jpix_db_test',
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: process.env.DB_PORT || 5432,
+    dialect: process.env.DB_DIALECT || 'postgres'
+  },
+  production: {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    dialect: process.env.DB_DIALECT
+  }
+};
+```
+
+**.sequelizerc**
+```js
+const path = require('path');
+
+module.exports = {
+  'config': path.resolve('config', 'config.js'),
+  'models-path': path.resolve('src', 'models'),
+  'seeders-path': path.resolve('src', 'seeders'),
+  'migrations-path': path.resolve('src', 'migrations')
+};
+```
+
+---
+
+## 📦 Instalación de dependencias
+
+```bash
+cd jpix-backend
+npm install
+npm install sequelize pg pg-hstore
+npm install --save-dev sequelize-cli dotenv
+```
+
+---
+
+## 🧠 Crear base y verificar conexión
+
+```bash
+npx sequelize-cli db:create
+```
+
+**Posibles mensajes:**  
+✅ `Database jpix_db created.` → conexión correcta.  
+⚠️ `la base de datos «jpix_db» ya existe` → también correcto.
+
+---
+
+## 🧱 Migraciones (estructura de tablas)
+
+**Crear migración**
+```bash
+npx sequelize-cli migration:generate --name create-usuarios
+```
+
+**Ejemplo (`src/migrations/XXXX-create-usuarios.js`)**
+```js
+'use strict';
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('usuarios', {
+      id: { allowNull: false, autoIncrement: true, primaryKey: true, type: Sequelize.INTEGER },
+      nombre: { type: Sequelize.STRING, allowNull: false },
+      email: { type: Sequelize.STRING, allowNull: false, unique: true },
+      rol: { type: Sequelize.ENUM('admin', 'estudiante'), defaultValue: 'estudiante' },
+      createdAt: { allowNull: false, type: Sequelize.DATE, defaultValue: Sequelize.literal('CURRENT_TIMESTAMP') },
+      updatedAt: { allowNull: false, type: Sequelize.DATE, defaultValue: Sequelize.literal('CURRENT_TIMESTAMP') }
+    });
+  },
+  async down(queryInterface) {
+    await queryInterface.dropTable('usuarios');
+  }
+};
+```
+
+**Aplicar migraciones**
+```bash
+npx sequelize-cli db:migrate
+```
+
+---
+
+## 🌱 Seeders (datos de ejemplo)
+
+**Crear seeder**
+```bash
+npx sequelize-cli seed:generate --name demo-usuarios
+```
+
+**Ejemplo (`src/seeders/XXXX-demo-usuarios.js`)**
+```js
+'use strict';
+module.exports = {
+  async up(queryInterface) {
+    await queryInterface.bulkInsert('usuarios', [
+      { nombre: 'Administrador', email: 'admin@jpix.cl', rol: 'admin', createdAt: new Date(), updatedAt: new Date() },
+      { nombre: 'Estudiante Prueba', email: 'estudiante@jpix.cl', rol: 'estudiante', createdAt: new Date(), updatedAt: new Date() }
+    ]);
+  },
+  async down(queryInterface) {
+    await queryInterface.bulkDelete('usuarios', null, {});
+  }
+};
+```
+
+**Ejecutar seeders**
+```bash
+npx sequelize-cli db:seed:all
+```
+
+---
+
+## 🧰 Comandos útiles
+
+| Acción | Comando |
+|--------|----------|
+| Crear base | `npx sequelize-cli db:create` |
+| Ejecutar migraciones | `npx sequelize-cli db:migrate` |
+| Insertar datos iniciales | `npx sequelize-cli db:seed:all` |
+| Revertir última migración | `npx sequelize-cli db:migrate:undo` |
+| Borrar todos los datos de seeders | `npx sequelize-cli db:seed:undo:all` |
+
+---
+
+## 🧠 Errores comunes
+
+| Mensaje | Causa | Solución |
+|----------|--------|----------|
+| `ECONNREFUSED 127.0.0.1:5432` | PostgreSQL no está encendido | Iniciar el servicio desde `services.msc` |
+| `password authentication failed` | Contraseña incorrecta | Verificar `.env` y usuario de PostgreSQL |
+| `client password must be a string` | `DB_PASS` vacío o mal definido | Revisar `.env` |
+| `database jpix_db already exists` | Base ya creada | No es error, continuar con migraciones |
+| `relation "usuarios" does not exist` | No se aplicaron migraciones | Ejecutar `db:migrate` |
+
+---
+
+## 👥 Instrucciones para cada integrante del grupo
+
+1. Instalar PostgreSQL localmente.  
+2. Crear usuario y base (`jpix_user`, `jpix_db`).  
+3. Crear archivo `.env` (copiar de `.env.example` y completar).  
+4. Ejecutar los siguientes comandos:
+
+```bash
+npm install
+npx sequelize-cli db:create
+npx sequelize-cli db:migrate
+npx sequelize-cli db:seed:all
+npm run dev
+```
+
+**Probar API en Postman:**
+```bash
+GET http://localhost:3000/api/v1/usuarios
+```
+
+---
+
+## 📝 Commit sugerido
+
+```bash
+git add .
+git commit -m "feat(backend): configuración PostgreSQL + Sequelize con migraciones y seeders (EP 2.2)"
+git push
+```
+
+**Opcional:**
+
+```bash
+git tag ep-2.2
+git push --tags
+```
+
+---
+
+## 🏁 Resultado final esperado
+
+✅ Base de datos `jpix_db` creada localmente en cada PC  
+✅ Usuario `jpix_user` con permisos  
+✅ Conexión PostgreSQL + Sequelize funcionando  
+✅ Migraciones y seeders aplicados  
+✅ Listo para avanzar al **EP 2.3 (endpoints CRUD)**
+
