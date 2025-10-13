@@ -466,3 +466,245 @@ git push --tags
 ✅ Migraciones y seeders aplicados  
 ✅ Listo para avanzar al **EP 2.3 (endpoints CRUD)**
 
+# 📦 Estructura del Monorepo — JPIX
+
+```
+JPIX-PROYECTO/
+├─ Jpix/                 # Frontend (Ionic + Angular)
+└─ jpix-backend/         # Backend (Node + Express + PostgreSQL)
+   ├─ .sequelizerc
+   ├─ config/
+   │  └─ config.js
+   ├─ data/              # CSVs limpios (pegarlos aquí)
+   │  ├─ asignaturas_obligatorias_limpias.csv
+   │  ├─ asignaturas_fofu_limpias.csv
+   │  ├─ secciones.csv
+   │  ├─ secciones_fofu.csv
+   │  ├─ bloques_horario.csv
+   │  ├─ bloques_horario_fofu.csv
+   │  └─ prerequisitos_obligatorias.csv
+   ├─ src/
+   │  ├─ server.js
+   │  ├─ app.js
+   │  ├─ config/
+   │  │  └─ env.js
+   │  ├─ middlewares/
+   │  │  └─ error.middleware.js
+   │  ├─ models/
+   │  │  ├─ index.js              # loader a prueba de balas (factory functions)
+   │  │  ├─ usuario.js
+   │  │  ├─ asignatura.js
+   │  │  ├─ seccion.js
+   │  │  ├─ bloquehorario.js
+   │  │  └─ requisito.js
+   │  ├─ migrations/
+   │  │  ├─ ... (usuarios si ya existía)
+   │  │  └─ 20251013-init-schema.js
+   │  ├─ seeders/
+   │  │  ├─ 20251010013742-demo-usuarios.js
+   │  │  ├─ 20251013-01-seed-asignaturas.js
+   │  │  ├─ 20251013-02-seed-secciones.js
+   │  │  ├─ 20251013-03-seed-bloques.js
+   │  │  └─ 20251013-04-seed-requisitos.js
+   │  └─ routes/
+   │     └─ v1/
+   │        ├─ health.routes.js
+   │        ├─ users.routes.js
+   │        └─ asignaturas.routes.js   # (opcional pero recomendado)
+   └─ package.json
+```
+
+## ✅ Requisitos
+- Node.js 18+ y npm
+- PostgreSQL corriendo en local (puerto 5432 por defecto)
+- (Opcional) Postman o curl
+
+## 🔧 Instalación rápida
+```bash
+cd jpix-backend
+npm i
+npm i express cors morgan
+npm i sequelize pg pg-hstore
+npm i -D sequelize-cli dotenv nodemon
+npm i bcryptjs csv-parse
+```
+
+## ⚙️ PostgreSQL (una vez)
+```sql
+CREATE ROLE jpix_user WITH LOGIN PASSWORD 'admin123';
+ALTER ROLE jpix_user CREATEDB;
+CREATE DATABASE jpix_db OWNER jpix_user;
+GRANT ALL PRIVILEGES ON DATABASE jpix_db TO jpix_user;
+```
+
+## 🔐 .env en jpix-backend/
+```bash
+NODE_ENV=development
+PORT=3000
+
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_USER=jpix_user
+DB_PASS=admin123
+DB_NAME=jpix_db
+DB_DIALECT=postgres
+# DB_SSL=true    # solo si tu proveedor prod lo pide
+```
+
+No comitear .env. Dejar un .env.example sin secretos.
+
+## 🧭 Configuración Sequelize
+**.sequelizerc**
+```js
+const path = require('path');
+
+module.exports = {
+  'config': path.resolve('config', 'config.js'),
+  'models-path': path.resolve('src', 'models'),
+  'seeders-path': path.resolve('src', 'seeders'),
+  'migrations-path': path.resolve('src', 'migrations')
+};
+```
+
+**config/config.js**
+```js
+require('dotenv').config();
+
+module.exports = {
+  development: {
+    username: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASS || '',
+    database: process.env.DB_NAME || 'jpix_db',
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: process.env.DB_PORT || 5432,
+    dialect: process.env.DB_DIALECT || 'postgres',
+    logging: false
+  },
+  test: {
+    username: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASS || '',
+    database: process.env.DB_NAME_TEST || 'jpix_db_test',
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: process.env.DB_PORT || 5432,
+    dialect: process.env.DB_DIALECT || 'postgres',
+    logging: false
+  },
+  production: {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    dialect: process.env.DB_DIALECT,
+    logging: false,
+    dialectOptions: process.env.DB_SSL === 'true' ? {
+      ssl: { require: true, rejectUnauthorized: false }
+    } : {}
+  }
+};
+```
+
+## 🧠 Modelos (Sequelize)
+Usuario → tabla usuarios (campos: rut, nombre, email único, password_hash, rol ENUM)
+Asignatura → asignaturas (obligatorias/fofu/etc.)
+Seccion → secciones (FK a asignaturas)
+BloqueHorario → bloques_horario (FK a secciones)
+Requisito → requisitos (self-join de asignaturas)
+El loader src/models/index.js ignora archivos que no sean factory function, evitando crashes.
+
+## 🧱 Migraciones
+Tu migración de usuarios (ya existente).
+Nueva migración académica: 20251013-init-schema.js
+Crea asignaturas, secciones, bloques_horario, requisitos.
+Índices y constraints (FKs, uniques).
+Usa ENUMs para tipo, semestralidad, dia, actividad, paridad.
+
+Si alguna vez tienes conflictos por tipos ENUM al hacer rollback/re-run, la migración down intenta dropear esos tipos. Si persiste, te paso versión con STRING.
+
+## 🌱 Seeders
+20251010013742-demo-usuarios.js
+Inserta dos usuarios demo con bcryptjs → respeta rut y password_hash NOT NULL.
+20251013-01-seed-asignaturas.js → Lee CSV asignaturas_obligatorias_limpias.csv y asignaturas_fofu_limpias.csv.
+20251013-02-seed-secciones.js → Lee secciones.csv y secciones_fofu.csv y enlaza por sigla.
+20251013-03-seed-bloques.js → Lee bloques_horario.csv y bloques_horario_fofu.csv y enlaza por (sigla,seccion).
+20251013-04-seed-requisitos.js → Lee prerequisitos_obligatorias.csv y enlaza por sigla.
+
+CSV esperados (en jpix-backend/data/):
+asignaturas_obligatorias_limpias.csv, asignaturas_fofu_limpias.csv,
+secciones.csv, secciones_fofu.csv,
+bloques_horario.csv, bloques_horario_fofu.csv,
+prerequisitos_obligatorias.csv.
+
+## 🛣️ Rutas Express
+Health
+GET /api/v1/health → { "status": "ok" }
+
+Usuarios (src/routes/v1/users.routes.js + src/controllers/users.controller.js)
+GET /api/v1/usuarios
+GET /api/v1/usuarios/:id
+POST /api/v1/usuarios
+PUT /api/v1/usuarios/:id
+DELETE /api/v1/usuarios/:id
+
+Asignaturas (opcional pero incluido)
+GET /api/v1/asignaturas
+GET /api/v1/asignaturas/:sigla (incluye secciones y bloques)
+
+## 🏃 Scripts en package.json
+```json
+{
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:create": "sequelize-cli db:create",
+    "db:migrate": "sequelize-cli db:migrate",
+    "db:seed": "sequelize-cli db:seed:all",
+    "db:reset": "sequelize-cli db:seed:undo:all && sequelize-cli db:migrate:undo:all && sequelize-cli db:migrate && sequelize-cli db:seed:all"
+  }
+}
+```
+
+## 🚀 Cómo correr todo
+CSV: pega los 7 CSV en jpix-backend/data/
+DB:
+```bash
+npm run db:create
+npm run db:migrate
+npm run db:seed
+```
+Servidor:
+```bash
+npm run dev
+```
+Deberías ver: Jpix API escuchando en http://localhost:3000
+
+## 🧪 Smoke tests (curl)
+```bash
+curl http://localhost:3000/api/v1/health
+curl http://localhost:3000/api/v1/usuarios
+curl http://localhost:3000/api/v1/usuarios/1
+curl -X POST http://localhost:3000/api/v1/usuarios -H "Content-Type: application/json" -d '{"rut":"12345678-9","nombre":"Nuevo","email":"nuevo@jpix.cl","password":"secreto","rol":"estudiante"}'
+curl http://localhost:3000/api/v1/asignaturas
+curl http://localhost:3000/api/v1/asignaturas/INFXXXX
+```
+
+## 🧰 Troubleshooting (errores reales que vimos)
+404 GET /api/v1/healt → Typo: es /api/v1/health.
+el valor nulo en la columna rut/password_hash → Usa bcryptjs y rut en seeder.
+Class constructor model cannot be invoked without 'new' → Loader seguro en models/index.js.
+app.use() requires a middleware function → Revisa exports de routers.
+ENUM rollback → Si persiste error, cambia ENUM a STRING.
+
+## 🧭 Decisiones de diseño
+CSV → Seeders: cargamos datos limpios directo a PostgreSQL.
+Migraciones académicas separadas.
+FKs con ON DELETE CASCADE.
+Prerrequisitos: self-join.
+Rutas CRUD + asignaturas consulta rápida.
+
+## ▶️ Próximos pasos (EP 2.3+)
+CRUD completo /asignaturas, /secciones, /bloques.
+Tabla docentes + FK en secciones.
+Endpoint /horarios/propuesta (sin choques).
+Autenticación JWT (roles).
+Tests Jest/Supertest.
