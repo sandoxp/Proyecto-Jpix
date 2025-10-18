@@ -1,27 +1,20 @@
 const { Requisito, Asignatura } = require('../models');
+const { ok, fail } = require('../utils/responses');
 
-exports.list = async (_req, res, next) => {
-  try {
-    const data = await Requisito.findAll({
-      include: [{
-        model: Asignatura,
-        as: 'asignatura'
-      }]
-    });
-    res.json({ data });
-  } catch (err) { next(err); }
+
+// Nota: si tu modelo define dos alias (asignatura y requerida), puedes incluir ambos
+exports.list = async (_req, res) => {
+const data = await Requisito.findAll({
+include: [{ model: Asignatura, as: 'asignatura' }]
+});
+return ok(res, data);
 };
 
-exports.getOne = async (req, res, next) => {
-  try {
-    const data = await Requisito.findOne({
-      where: { id: req.params.id },
-      include: [{
-        model: Asignatura,
-        as: 'asignatura'
-      }]
-    });
-    if (!data) return res.status(404).json({ error: { message: 'Requisito no encontrado', code: 404 } });
-    res.json({ data });
-  } catch (err) { next(err); }
+
+exports.getOne = async (req, res) => {
+const data = await Requisito.findOne({
+where: { id: req.params.id },
+include: [{ model: Asignatura, as: 'asignatura' }]
+});
+return data ? ok(res, data) : fail(res, 'Requisito no encontrado', 404);
 };

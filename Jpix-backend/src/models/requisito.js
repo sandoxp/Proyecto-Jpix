@@ -9,6 +9,11 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true
   });
 
-  // Relaciones “self-join” ya quedan en Asignatura.belongsToMany(...)
+  // 🔧 agrega esto:
+  Requisito.associate = (models) => {
+    Requisito.belongsTo(models.Asignatura, { as: 'asignatura', foreignKey: 'asignatura_id' });
+    Requisito.belongsTo(models.Asignatura, { as: 'requerida',  foreignKey: 'requiere_id'  }); // opcional pero útil
+  };
+
   return Requisito;
 };

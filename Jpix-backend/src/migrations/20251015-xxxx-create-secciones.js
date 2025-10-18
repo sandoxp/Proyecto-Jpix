@@ -35,6 +35,7 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    await queryInterface.dropTable('secciones');
+  // En Postgres, CASCADE elimina dependencias (FKs/tablas hijas)
+  await queryInterface.dropTable('secciones', { cascade: true });
   }
 };

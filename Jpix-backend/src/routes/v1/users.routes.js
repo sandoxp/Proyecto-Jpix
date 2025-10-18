@@ -1,12 +1,13 @@
-// src/routes/v1/users.routes.js
-'use strict';
 const router = require('express').Router();
-const ctrl = require('../../controllers/users.controller');
+const { asyncH } = require('../../utils/async');
+const C = require('../../controllers/users.controller');
 
-router.get('/', ctrl.list);
-router.get('/:id', ctrl.getOne);
-router.post('/', ctrl.create);
-router.put('/:id', ctrl.update);
-router.delete('/:id', ctrl.remove);
+
+router.get('/', asyncH(C.list));
+router.get('/:id', asyncH(C.getOne));
+router.post('/', asyncH(C.create));
+router.put('/:id', asyncH(C.update));
+router.delete('/:id', asyncH(C.remove));
+
 
 module.exports = router;

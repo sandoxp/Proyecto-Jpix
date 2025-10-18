@@ -1,8 +1,10 @@
-'use strict';
 const router = require('express').Router();
-const requisitosController = require('../../controllers/requisitos.controller');
+const { asyncH } = require('../../utils/async');
+const C = require('../../controllers/requisitos.controller');
 
-router.get('/', requisitosController.list);
-router.get('/:id', requisitosController.getOne);
+
+router.get('/', asyncH(C.list));
+router.get('/:id', asyncH(C.getOne));
+
 
 module.exports = router;

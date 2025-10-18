@@ -708,3 +708,271 @@ Tabla docentes + FK en secciones.
 Endpoint /horarios/propuesta (sin choques).
 Autenticación JWT (roles).
 Tests Jest/Supertest.
+
+# JPIX — EP 2.3 · API REST básica (Backend listo y probado)
+
+Este README resume **lo implementado y probado en el Punto 2.3** del proyecto **Jpix**: API REST con **Express + Sequelize + PostgreSQL**, modelos, migraciones, seeders, rutas y pruebas con **Insomnia**.
+
+> **Tip:** Este backend queda preparado para continuar con **EP 2.4** (consumo desde Ionic con `HttpClient`) sin reordenar nada.
+
+---
+
+## 📦 Estructura del repo (monorepo)
+
+```
+JPIX-PROYECTO/
+├─ Jpix/                 # Frontend (Ionic + Angular)
+└─ jpix-backend/         # Backend (Node + Express + PostgreSQL)
+   ├─ .sequelizerc
+   ├─ config/
+   │  └─ config.js
+   ├─ src/
+   │  ├─ server.js
+   │  ├─ app.js
+   │  ├─ config/
+   │  │  └─ env.js
+   │  ├─ middlewares/
+   │  │  └─ error.middleware.js
+   │  ├─ models/
+   │  │  ├─ usuario.js
+   │  │  ├─ asignatura.js
+   │  │  ├─ seccion.js
+   │  │  ├─ bloquehorario.js
+   │  │  └─ requisito.js
+   │  ├─ migrations/
+   │  │  ├─ (usuarios, asignaturas, secciones, bloques_horario, requisitos)
+   │  ├─ seeders/
+   │  │  ├─ 20251010013742-demo-usuarios.js
+   │  │  ├─ 20251013-01-seed-asignaturas.js
+   │  │  ├─ 20251013-02-seed-secciones.js
+   │  │  ├─ 20251013-03-seed-bloques.js
+   │  │  └─ 20251013-04-seed-requisitos.js
+   │  └─ routes/
+   │     └─ v1/
+   │        ├─ health.routes.js
+   │        ├─ users.routes.js
+   │        ├─ asignaturas.routes.js
+   │        ├─ secciones.routes.js
+   │        ├─ bloques.routes.js
+   │        └─ requisitos.routes.js
+   └─ package.json
+```
+
+---
+
+## ✅ Requisitos
+
+- **Node.js 18+** y npm
+- **PostgreSQL** (puerto 5432)
+- **Insomnia** o Postman para pruebas
+
+---
+
+## 🔐 Variables de entorno (`.env` en `jpix-backend/`)
+
+```
+NODE_ENV=development
+PORT=3000
+
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_USER=jpix_user
+DB_PASS=admin123
+DB_NAME=jpix_db
+DB_DIALECT=postgres
+```
+
+> No subir `.env` al repo. Mantener un `.env.example`.
+
+---
+
+## 🧰 Instalación y scripts
+
+```bash
+# instalar deps
+npm i
+# deps clave
+npm i express cors morgan
+npm i sequelize pg pg-hstore
+npm i bcryptjs csv-parse
+npm i -D sequelize-cli dotenv nodemon
+
+# scripts (package.json)
+#  "dev": "nodemon src/server.js"
+#  "db:create": "sequelize-cli db:create"
+#  "db:migrate": "sequelize-cli db:migrate"
+#  "db:seed": "sequelize-cli db:seed:all"
+#  "db:reset": "sequelize-cli db:seed:undo:all && sequelize-cli db:migrate:undo:all && sequelize-cli db:migrate && sequelize-cli db:seed:all"
+```
+
+---
+
+## 🧱 Modelos (resumen de campos y relaciones)
+
+- **Usuario** (`usuarios`): `rut` (unique), `nombre`, `email` (unique), `password_hash`, `rol` (`admin|estudiante`).
+- **Asignatura** (`asignaturas`): `sigla` (unique), `nombre`, `tipo` (`obligatoria|fofu|ingles|optativa`), `creditos`, `periodo_malla`, `semestralidad` (`ANUAL|SEMESTRAL`), `tasa_aprobacion`, `tasa_aprobacion_pct`.
+  - Relaciones: `Asignatura.hasMany(Seccion, { as: 'secciones' })` y **self-join** vía `Requisito` (`belongsToMany`).
+- **Seccion** (`secciones`): `asignatura_id` (FK), `seccion`, `nombre`, `codigo_completo`, `docente`.
+  - Relaciones: `belongsTo(Asignatura)` y `hasMany(BloqueHorario, { as: 'bloques' })`.
+- **BloqueHorario** (`bloques_horario`): `seccion_id` (FK), `dia` (`LUN|MAR|MIE|JUE|VIE|SAB`), `clave_ini`, `clave_fin`, `actividad` (`CAT|TAL|AY`), `sede`, `sala`, `paridad` (`PAR|IMPAR|AMBOS`), `hora_inicio`, `hora_fin`.
+  - Relaciones: `belongsTo(Seccion)`.
+- **Requisito** (`requisitos`): `asignatura_id` (FK a asignaturas), `requiere_id` (FK a asignaturas).
+
+> Las migraciones respetan el orden de dependencias: **asignaturas → secciones → bloques_horario → requisitos**.
+
+---
+
+## 🧪 Migraciones y seeders
+
+```bash
+npm run db:create
+npm run db:migrate
+npm run db:seed
+```
+
+### Semillas idempotentes (recomendado)
+Para evitar errores de duplicados (ej. `usuarios_rut_key`), el seeder `demo-usuarios` borra los RUT a insertar antes de `bulkInsert`. Alternativa: *upsert* con `updateOnDuplicate` (no estándar en `queryInterface`).
+
+### Reset en dev
+Si `db:reset` falla por dependencias (FKs), soluciones:
+- **Down con CASCADE** en `dropTable('secciones', { cascade: true })`, o
+- Deshacer primero `bloques_horario` y luego `secciones`, o
+- `DROP TABLE "bloques_horario" CASCADE;` (solo dev).
+
+---
+
+## 🚀 Levantar servidor
+
+```bash
+npm run dev
+# http://localhost:3000
+```
+
+Healthcheck:
+```
+GET /api/v1/health  →  { "status": "ok" }
+```
+
+---
+
+## 🌐 Endpoints (EP 2.3)
+
+### Usuarios
+```
+GET    /api/v1/usuarios
+GET    /api/v1/usuarios/:id
+POST   /api/v1/usuarios
+PUT    /api/v1/usuarios/:id
+DELETE /api/v1/usuarios/:id
+```
+**POST /api/v1/usuarios (JSON):**
+```json
+{
+  "rut":"12345678-9",
+  "nombre":"Nuevo",
+  "email":"nuevo@jpix.cl",
+  "password":"secreto",
+  "rol":"estudiante"
+}
+```
+
+---
+
+### Asignaturas
+```
+GET  /api/v1/asignaturas
+GET  /api/v1/asignaturas/:sigla   # incluye secciones y bloques
+```
+**Ejemplo:**
+```
+GET /api/v1/asignaturas/INF1211
+→ { "data": { "sigla":"INF1211", "nombre":"...", "secciones":[{ "bloques":[...] }] } }
+```
+
+---
+
+### Secciones
+```
+GET  /api/v1/secciones
+GET  /api/v1/secciones/:id
+```
+> (CRUD completo opcional; hoy se exponen consultas de lectura para apoyar la vista y depuración)
+
+---
+
+### Bloques Horario
+```
+GET  /api/v1/bloques
+GET  /api/v1/bloques/:id
+```
+
+---
+
+### Requisitos
+```
+GET  /api/v1/requisitos
+GET  /api/v1/requisitos/:id
+```
+
+---
+
+## 🧪 Guía de pruebas con **Insomnia**
+
+1. **Crear entorno** con variable `base_url = http://localhost:3000/api/v1`.
+2. **Colección** “Jpix / v1” con requests:
+   - `GET {{ base_url }}/health`
+   - `GET {{ base_url }}/usuarios`
+   - `POST {{ base_url }}/usuarios` (body JSON del ejemplo)
+   - `PUT {{ base_url }}/usuarios/:id` (cambiar `nombre`, `email` o `password` → se hashea)
+   - `DELETE {{ base_url }}/usuarios/:id`
+   - `GET {{ base_url }}/asignaturas`
+   - `GET {{ base_url }}/asignaturas/INF1211`
+   - `GET {{ base_url }}/secciones`
+   - `GET {{ base_url }}/secciones/1`
+   - `GET {{ base_url }}/bloques`
+   - `GET {{ base_url }}/bloques/1`
+   - `GET {{ base_url }}/requisitos`
+   - `GET {{ base_url }}/requisitos/1`
+3. Verificar respuestas `200/201/204` y formato `{ "data": ... }` o `{ "error": { message, code } }`.
+
+---
+
+## 🛡️ Manejo de errores y formato de respuesta
+
+- **OK** → `{ "data": ... }`
+- **Error** → `{ "error": { "message": "...", "code": 400|401|403|404|409|500 } }`
+- Middleware global: `errorHandler`, 404 genérico y `favicon.ico` silencioso.
+
+---
+
+## 🔜 Preparado para EP 2.4 (no implementado aquí)
+
+- Front **Ionic** consumirá esta API con `HttpClient`.
+- Configurar `environment.ts`: `API_URL = 'http://localhost:3000/api/v1'`.
+- Servicios recomendados: `AsignaturasService`, `UsuariosService`, etc.
+
+---
+
+## 🧩 Troubleshooting real
+
+- **"llave duplicada viola restricción de unicidad 'usuarios_rut_key'"**
+  - Solución: `seed:undo` del seeder, o seeder idempotente (delete+insert), o `db:reset`.
+- **"no existe la relación «asignaturas»"**
+  - Causa: migraciones no aplicadas / orden incorrecto.
+  - Solución: `npx sequelize-cli db:migrate`, verificar con `\dt` en psql.
+- **Undo con FKs (secciones/bloques)**
+  - Solución: `dropTable('secciones', { cascade: true })` en `down`, o deshacer en orden.
+
+---
+
+## ✅ Estado EP 2.3
+
+- ✅ Backend Express operativo con prefijo **`/api/v1`**
+- ✅ Modelos Sequelize y relaciones
+- ✅ Migraciones y seeders aplicados
+- ✅ Endpoints listos y probados con **Insomnia**
+- 🚧 Listo para **EP 2.4** (consumo desde Ionic)
+
+---
+
+Hecho con ❤️ para Jpix.
