@@ -20,12 +20,10 @@
   --avatar-size: 88px;
 }
 
-/* CAMBIO CLAVE: Se ajusta el contenedor principal para que crezca verticalmente */
-.horario-content { 
+.horario-content {
   --background: var(--bg-page);
-  height: auto; /* Le decimos al contenedor que su altura se adapte al contenido */
-  min-height: calc(100vh - 56px); /* Opcional: asegura que en páginas cortas ocupe al menos toda la pantalla menos el header */
-  padding-bottom: 40px; /* Añade un poco de espacio al final para que no quede pegado al borde */
+  min-height: calc(100vh - 56px);
+  padding-bottom: 40px;
 }
 
 /* ===== Título ===== */
@@ -43,11 +41,10 @@
   grid-template-columns: 1fr 48px;
   gap: 10px;
   align-items: center;
-  max-width: 760px;
+  max-width: 900px;          /* + ancho */
   margin: 0 auto 22px;
   padding: 0 16px;
 }
-
 .search-input {
   --background: #eaeaea;
   --padding-start: 14px;
@@ -56,40 +53,28 @@
   height: 48px;
   border-radius: 8px;
 }
-
 .search-btn { width: 48px; height: 48px; border-radius: 10px; }
 
 /* ===== Layout principal ===== */
 .layout {
   display: grid;
-  grid-template-columns: 340px auto;
+  grid-template-columns: 300px 1fr;  /* un poco más estrecha la barra izquierda */
   gap: 24px;
   padding: 0 16px 24px;
-  max-width: 1200px;
+  max-width: 1360px;                 /* + ancho total */
   margin: 0 auto;
-  justify-content: start;
 }
 
 /* ===== Panel izquierdo ===== */
 .left-pane { display: flex; flex-direction: column; gap: 16px; }
-
 .assistant {
   display: grid;
   grid-template-columns: var(--avatar-size) 1fr;
   gap: 14px;
   align-items: center;
 }
-
-.avatar {
-  width: var(--avatar-size);
-  height: var(--avatar-size);
-  object-fit: contain;
-  object-position: center;
-  display: block;
-}
-
+.avatar { width: var(--avatar-size); height: var(--avatar-size); object-fit: contain; }
 .assistant-text { margin: 0; color: var(--text-muted); line-height: 1.35; font-size: 14px; }
-
 .cta { --background: #d1d1d1; --color: #000; border-radius: 10px; font-weight: 700; }
 
 /* Leyenda */
@@ -100,18 +85,18 @@
   margin-top: 8px;
 }
 .legend-item { display: flex; align-items: center; gap: 10px; color: var(--text-strong); font-weight: 600; }
-.swatch { width: 44px; height: 28px; border-radius: 6px; display: inline-block; border: 1px solid var(--border); }
+.swatch { width: 44px; height: 28px; border-radius: 6px; border: 1px solid var(--border); display: inline-block; }
 .swatch-obligatorio { background: var(--legend-obligatorio); }
 .swatch-optativo    { background: var(--legend-optativo); }
-.swatch-fofu         { background: var(--legend-fofu); }
-.swatch-ingles       { background: var(--legend-ingles); }
+.swatch-fofu        { background: var(--legend-fofu); }
+.swatch-ingles      { background: var(--legend-ingles); }
 
 /* ===== Tabla ===== */
-.table-wrapper { 
+.table-wrapper {
   background: var(--card-bg);
   border-radius: 12px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-  padding: 12px;
+  padding: 16px; /* + padding */
 }
 
 .schedule-table {
@@ -120,9 +105,9 @@
   border-spacing: 0;
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  font-size: 13px;
+  font-size: 13.5px; /* + tamaño fuente */
   line-height: 1.25;
   table-layout: fixed;
 }
@@ -130,7 +115,7 @@
 .schedule-table thead th {
   background: #f3f3f3;
   text-align: center;
-  padding: 8px 6px;
+  padding: 10px 8px;  /* + padding */
   font-weight: 700;
   color: var(--text-strong);
   border-bottom: 1px solid var(--border);
@@ -140,7 +125,7 @@
 }
 
 .th-hour, .td-hour {
-  width: 60px;
+  width: 72px; /* un pelín más ancho para 2 dígitos */
   text-align: center;
   font-weight: 700;
   background: #fafafa;
@@ -151,49 +136,47 @@
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   vertical-align: top;
-  padding: 10px;
+  padding: 12px;   /* + padding */
 }
-
 .schedule-table tr:last-child td { border-bottom: 0; }
 
 .cell {
   background: #fff;
-  border-radius: 8px;
-  padding: 8px;
+  border-radius: 10px;
+  padding: 10px;              /* + padding */
   border: 1px solid #ececec;
-  min-height: 54px;
+  min-height: 82px;           /* + altura por bloque */
 }
-
 .cell.empty { background: transparent; border: 0; }
 
-.course-code { font-weight: 800; margin-bottom: 2px; }
+.course-code { font-weight: 800; margin-bottom: 4px; }
 .kind { font-weight: 800; margin-left: 6px; }
-.course-row { font-size: 11px; color: #333; }
+.course-row { font-size: 12px; color: #333; }
 
 /* Colores en celdas específicas */
 .cell.obligatorio { background: var(--cell-obligatorio); }
 .cell.optativo    { background: var(--cell-optativo); }
-.cell.fofu         { background: var(--cell-fofu); }
-.cell.ingles       { background: var(--cell-ingles); }
+.cell.fofu        { background: var(--cell-fofu); }
+.cell.ingles      { background: var(--cell-ingles); }
 
-/* ===== Ajustes RESPONSIVE para móvil ===== */
+.cell { position: relative; }
+.cell-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  --padding-start: 2px; --padding-end: 2px;
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 1200px) {
-  .layout {
-    grid-template-columns: 1fr;
-  }
-  
+  .layout { grid-template-columns: 1fr; }
   .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: #bcbcbc transparent;
   }
-
   .table-wrapper::-webkit-scrollbar { height: 10px; }
-  .table-wrapper::-webkit-scrollbar-track { background: transparent; }
   .table-wrapper::-webkit-scrollbar-thumb { background: #bcbcbc; border-radius: 999px; }
-  
-  .schedule-table {
-    min-width: 900px;
-  }
+  .schedule-table { min-width: 980px; } /* un poco más que antes */
 }

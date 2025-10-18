@@ -38,6 +38,13 @@ app.use((_req, res) => {
   res.status(404).json({ error: { message: 'Not Found', code: 404 } });
 });
 
+const corsOptions = {
+  origin: ['http://localhost:8100', 'http://localhost:4200'],
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+};
+app.use(cors(corsOptions));
+
 // Manejador de errores al final
 app.use(errorHandler);
 

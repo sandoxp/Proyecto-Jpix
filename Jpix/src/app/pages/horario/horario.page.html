@@ -89,10 +89,20 @@
                   class="cell"
                   [ngClass]="getCourseClass(day, block)"
                   *ngIf="getCourse(day, block) as course; else emptyCell">
-                  <div class="course-code">{{ course.code }} <span class="kind">{{ course.kind }}</span></div>
+
+                  <div class="course-code">
+                    {{ course.code }} <span class="kind">{{ course.kind }}</span>
+                  </div>
                   <div class="course-row"><strong>{{ course.title }}</strong></div>
                   <div class="course-row">Sala: {{ course.room }}</div>
                   <div class="course-row">Modo: {{ course.mode }}</div>
+
+                  <!-- NUEVO: botón quitar -->
+                  <ion-button fill="clear" size="small" class="cell-remove"
+                              (click)="$event.stopPropagation(); removeCourseByCell(day, block)"
+                              aria-label="Quitar {{ course.code }}">
+                    <ion-icon slot="icon-only" name="close-circle"></ion-icon>
+                  </ion-button>
                 </div>
                 <ng-template #emptyCell>
                   <div class="cell empty"></div>

@@ -136,3 +136,19 @@ h1 {
   margin: 0; /* Elimina márgenes extra si los hay */
 }
 
+/* Segment de filtros */
+.filters {
+  margin: 8px auto 12px;
+  max-width: 1200px;
+  display: block;
+  --background: transparent;
+}
+.filters ion-segment-button {
+  margin: 0 4px;
+  border-radius: 9999px;
+  --indicator-color: var(--ion-color-primary);
+  --background: #dcdcdc;
+  --color: #000;
+  --color-checked: #fff;
+}
+
