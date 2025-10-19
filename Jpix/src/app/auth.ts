@@ -1,41 +1,58 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, tap, Observable } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 
-@Injectable({
-  providedIn: 'root'
-})
+type LoginPayload = { email?: string; rut?: string; password: string; role?: string };
+
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  // Estado de autenticación
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(!!localStorage.getItem('token'));
   isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-  // Estado del rol del usuario (Estudiante o Administrador)
-  private roleSubject = new BehaviorSubject<string>('estudiante'); // Valor predeterminado
+  private roleSubject = new BehaviorSubject<string>(localStorage.getItem('role') || 'estudiante');
   role$ = this.roleSubject.asObservable();
 
-  constructor() {
-    const user = localStorage.getItem('user');
-    const role = localStorage.getItem('role'); // Traemos el rol del localStorage
+  private base = environment.API_URL;
 
-    if (user && role) {
-      this.isAuthenticatedSubject.next(true);
-      this.roleSubject.next(role); // Cargamos el rol desde el localStorage
-    }
+  constructor(private http: HttpClient) {}
+
+  // REGISTRO → /auth/register
+  register(body: { rut: string; nombre: string; email: string; password: string; rol?: 'admin'|'estudiante' })
+  : Observable<{ data: { token: string; user: any } }> {
+    return this.http.post<{ data: { token: string; user: any } }>(`${this.base}/auth/register`, body).pipe(
+      tap(({ data }) => {
+        //logueado al registrarte:
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('role', data.user.rol || 'estudiante');
+        this.isAuthenticatedSubject.next(true);
+        this.roleSubject.next(data.user.rol || 'estudiante');
+      })
+    );
   }
 
-  // Función de login
-  login(role: string) {
-    localStorage.setItem('user', 'authenticated');
-    localStorage.setItem('role', role); // Guardamos el rol en el localStorage
-    this.isAuthenticatedSubject.next(true);
-    this.roleSubject.next(role); // Emitimos el rol
+  // LOGIN → /auth/login (acepta email o rut según tu backend)
+  loginWithCredentials(payload: LoginPayload): Observable<{ data: { token: string; user: any } }> {
+    return this.http.post<{ data: { token: string; user: any } }>(`${this.base}/auth/login`, payload).pipe(
+      tap(({ data }) => {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        const role = payload.role || data.user.rol || 'estudiante';
+        localStorage.setItem('role', role);
+        this.isAuthenticatedSubject.next(true);
+        this.roleSubject.next(role);
+      })
+    );
   }
 
-  // Función de logout
+  me() { return this.http.get<{ data: any }>(`${this.base}/auth/me`); }
+
   logout() {
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
-    localStorage.removeItem('role'); // Limpiamos el rol
+    localStorage.removeItem('role');
     this.isAuthenticatedSubject.next(false);
-    this.roleSubject.next(''); // Limpiamos el rol
+    this.roleSubject.next('estudiante');
   }
 }

@@ -8,8 +8,8 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { HeaderComponent } from './components/header/header.component';
 import { TabsComponent } from './components/tabs/tabs.component';
-import { HttpClient } from '@angular/common/http';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 @NgModule({
   declarations: [AppComponent, HeaderComponent, TabsComponent],
