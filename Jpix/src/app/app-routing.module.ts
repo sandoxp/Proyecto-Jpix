@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './auth-guard';  // Asegúrate de que AuthGuard esté importado
+import { AdminGuard } from './guards/admin.guard';
 
 const routes: Routes = [
   {
@@ -24,10 +25,17 @@ const routes: Routes = [
     loadChildren: () => import('./pages/horario/horario.module').then( m => m.HorarioPageModule),
     canActivate: [AuthGuard]  // Protege esta ruta con AuthGuard
   },
+
   {
     path: 'perfil',
     loadChildren: () => import('./pages/perfil/perfil.module').then( m => m.PerfilPageModule),
     canActivate: [AuthGuard]  // Protege esta ruta con AuthGuard
+  },
+
+  {
+    path: 'admin/usuarios',
+    loadChildren: () => import('./pages/admin-usuarios/admin-usuarios.module').then( m => m.AdminUsuariosPageModule),
+    canActivate: [AuthGuard, AdminGuard]
   },
   // Otras rutas protegidas...
   {
@@ -37,10 +45,13 @@ const routes: Routes = [
   {
     path: 'registro',
     loadChildren: () => import('./pages/registro/registro.module').then( m => m.RegistroPageModule)
-  },  {
+  },
+  {
     path: 'chat',
     loadChildren: () => import('./pages/chat/chat.module').then( m => m.ChatPageModule)
   }
+  
+  
 
 ];
 

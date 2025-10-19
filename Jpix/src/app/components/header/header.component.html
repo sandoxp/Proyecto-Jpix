@@ -47,6 +47,13 @@
         <ion-label>{{ roleLabel }}</ion-label>
       </ion-chip>
     </ion-buttons>
+
+    <ion-buttons slot="end" *ngIf="isAdmin">
+      <ion-button (click)="goToAdminUsuarios()">
+        <ion-icon name="people-outline"></ion-icon>
+        <ion-label class="ml-2">Usuarios</ion-label>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

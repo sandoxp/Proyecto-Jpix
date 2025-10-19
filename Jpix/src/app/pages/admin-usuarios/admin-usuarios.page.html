@@ -1,0 +1,137 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Gestión de usuarios</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="load()" [disabled]="loading">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+      <ion-button color="primary" (click)="openCreate()">
+        <ion-icon name="person-add-outline"></ion-icon>
+        <ion-label class="ml-2">Nuevo</ion-label>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <!-- 👇 FIX: nada de arrow functions en el template -->
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-list *ngIf="!loading; else skel">
+    <ion-item *ngFor="let u of usuarios; trackBy: trackById">
+      <ion-label>
+        <h2>
+          {{ u.nombre }}
+          <ion-chip [color]="u.rol === 'admin' ? 'warning' : 'medium'" outline>{{ u.rol }}</ion-chip>
+        </h2>
+        <p>{{ u.email }} · {{ u.rut }}</p>
+      </ion-label>
+      <ion-buttons slot="end">
+        <ion-button size="small" (click)="openEdit(u)">
+          <ion-icon name="create-outline"></ion-icon>
+        </ion-button>
+        <ion-button size="small" (click)="toggleRole(u)">
+          <ion-icon name="swap-horizontal-outline"></ion-icon>
+        </ion-button>
+        <ion-button size="small" color="danger" (click)="remove(u)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-item>
+  </ion-list>
+
+  <ng-template #skel>
+    <ion-list>
+      <ion-item *ngFor="let i of [1,2,3,4,5]">
+        <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+
+  <!-- Crear -->
+  <ion-modal [isOpen]="createOpen" (didDismiss)="closeCreate()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Nuevo usuario</ion-title>
+          <ion-buttons slot="end"><ion-button (click)="closeCreate()">Cerrar</ion-button></ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <form [formGroup]="createForm" (ngSubmit)="saveCreate()">
+          <ion-item>
+            <ion-label position="stacked">RUT</ion-label>
+            <ion-input formControlName="rut"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Nombre</ion-label>
+            <ion-input formControlName="nombre"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Email</ion-label>
+            <ion-input type="email" formControlName="email"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Contraseña</ion-label>
+            <ion-input type="password" formControlName="password"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Rol</ion-label>
+            <ion-select interface="popover" formControlName="rol">
+              <ion-select-option value="estudiante">Estudiante</ion-select-option>
+              <ion-select-option value="admin">Admin</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-button expand="block" type="submit" [disabled]="createForm.invalid">Crear</ion-button>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Editar -->
+  <ion-modal [isOpen]="editOpen" (didDismiss)="closeEdit()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Editar usuario</ion-title>
+          <ion-buttons slot="end"><ion-button (click)="closeEdit()">Cerrar</ion-button></ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding" *ngIf="editingUser">
+        <form [formGroup]="editForm" (ngSubmit)="saveEdit()">
+          <ion-item>
+            <ion-label position="stacked">Nombre</ion-label>
+            <ion-input formControlName="nombre"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Email</ion-label>
+            <ion-input type="email" formControlName="email"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Contraseña (opcional)</ion-label>
+            <ion-input type="password" formControlName="password"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Rol</ion-label>
+            <ion-select interface="popover" formControlName="rol">
+              <ion-select-option value="estudiante">Estudiante</ion-select-option>
+              <ion-select-option value="admin">Admin</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-button expand="block" type="submit" [disabled]="editForm.invalid">Guardar</ion-button>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

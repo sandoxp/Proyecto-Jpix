@@ -9,18 +9,28 @@ import { AuthService } from 'src/app/auth';  // Asegúrate de importar correctam
   standalone: false,
 })
 export class HeaderComponent implements OnInit {
-  title: string = 'JPIX';  // Definimos el título
-  avatarSrc: string = 'assets/images/assistant-logo.png';  // Definimos la fuente del avatar
-  roleLabel: string = 'Estudiante'; // Por defecto, es 'Estudiante'
+  title: string = 'JPIX';
+  avatarSrc: string = 'assets/images/assistant-logo.png';
+  roleLabel: string = 'Estudiante';
   roleMenuOpen = false;
   roleMenuEvent: any = null;
+
+  // 👇 NUEVO: flag para mostrar botón admin
+  isAdmin = false;
 
   constructor(private router: Router, private auth: AuthService) {}
 
   ngOnInit() {
-    // Nos suscribimos al Observable que contiene el rol
+    // fallback: al refrescar la app
+    const r0 = localStorage.getItem('role') || 'estudiante';
+    this.isAdmin = (r0 === 'admin');
+    this.roleLabel = r0 ? r0.charAt(0).toUpperCase() + r0.slice(1) : 'Estudiante';
+
+    // reactivo: si cambia el rol
     this.auth.role$.subscribe(role => {
-      this.roleLabel = role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Estudiante';
+      const r = role || 'estudiante';
+      this.roleLabel = r.charAt(0).toUpperCase() + r.slice(1);
+      this.isAdmin = (r === 'admin');
     });
   }
 
@@ -38,12 +48,15 @@ export class HeaderComponent implements OnInit {
 
   logout() {
     this.roleMenuOpen = false;
-    this.auth.logout(); // Realizamos el logout en el servicio
-    this.router.navigate(['/login']); // Redirigimos al login
+    this.auth.logout();
+    this.router.navigate(['/login']);
   }
 
   goToHome() { this.router.navigate(['/home']); }
   goToCatalogo() { this.router.navigate(['/catalogo']); }
   goToHorario() { this.router.navigate(['/horario']); }
   goToPerfil() { this.router.navigate(['/perfil']); }
+
+  // 👇 NUEVO: navegar a la vista admin
+  goToAdminUsuarios() { this.router.navigate(['/admin/usuarios']); }
 }

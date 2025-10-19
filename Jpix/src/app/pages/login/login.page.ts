@@ -11,10 +11,11 @@ import { HttpErrorResponse } from '@angular/common/http';
   standalone: false,
 })
 export class LoginPage {
-  role: 'estudiante' | 'administrador' = 'estudiante';
-  email = '';     // opcional si lo prefieres explícito
-  usuario = '';   // en tu UI, úsalo como EMAIL para admin
-  rut = '';
+  // 👇 usar SIEMPRE 'admin' | 'estudiante'
+  role: 'estudiante' | 'admin' = 'estudiante';
+
+  email = '';      // para admin (o puedes seguir usando "usuario" si prefieres)
+  rut = '';        // para estudiante o admin por rut
   password = '';
 
   loading = false;
@@ -24,24 +25,18 @@ export class LoginPage {
   login() {
     if (!this.password) return alert('Ingresa tu contraseña');
 
-    const payload: any = { password: this.password, role: this.role };
+    // Construimos el payload según el rol
+    const payload: any = { password: this.password };
 
     if (this.role === 'estudiante') {
-      // Login por RUT
       if (!this.rut) return alert('Ingresa tu RUT');
       payload.rut = this.rut.trim();
     } else {
-      // ADMIN: permite login por EMAIL o por RUT
-      const maybeEmail = (this.usuario || '').trim();   // ← Tu input "Usuario" úsalo como email
-      const isEmail = /\S+@\S+\.\S+/.test(maybeEmail);
-
-      if (isEmail) {
-        payload.email = maybeEmail;
-      } else if (this.rut) {
-        payload.rut = this.rut.trim();
-      } else {
-        return alert('Ingresa email (recomendado) o RUT para administrador');
-      }
+      // ADMIN: permite email o rut
+      const maybe = (this.email || this.rut || '').trim();
+      if (!maybe) return alert('Ingresa email o RUT');
+      if (/\S+@\S+\.\S+/.test(maybe)) payload.email = maybe;
+      else payload.rut = maybe;
     }
 
     this.loading = true;
@@ -52,8 +47,7 @@ export class LoginPage {
       },
       error: (err: HttpErrorResponse) => {
         this.loading = false;
-        const msg = err?.error?.error?.message || 'Credenciales inválidas';
-        alert(msg);
+        alert(err?.error?.error?.message || 'Credenciales inválidas');
       }
     });
   }

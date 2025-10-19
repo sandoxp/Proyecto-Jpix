@@ -1,4 +1,3 @@
-// src/app/auth.guard.ts
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
@@ -15,13 +14,10 @@ export class AuthGuard implements CanActivate {
       this.router.navigate(['/login']);
       return of(false);
     }
-
     return this.auth.me().pipe(
       map(() => true),
       catchError(() => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('role');
+        this.auth.logout();
         this.router.navigate(['/login']);
         return of(false);
       })

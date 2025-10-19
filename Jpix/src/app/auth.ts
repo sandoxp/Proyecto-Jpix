@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, tap, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 
 type LoginPayload = { email?: string; rut?: string; password: string; role?: string };
+type Pair = { data: { token: string; refreshToken: string; user?: any } };
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -17,27 +18,36 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  // REGISTRO → /auth/register
-  // src/app/auth.ts
-  register(body: { rut: string; nombre: string; email: string; password: string; rol?: 'admin'|'estudiante' }) {
-    // NO guarda token aquí; solo llama a la API y deja que RegistroPage redirija a /login
-    return this.http.post<{ data: { token: string; user: any } }>(
-      `${this.base}/auth/register`,
-      body
+  // REGISTRO: (elige si guardar token o redirigir a /login)
+  register(body: { rut: string; nombre: string; email: string; password: string; rol?: 'admin'|'estudiante' }): Observable<Pair> {
+    return this.http.post<Pair>(`${this.base}/auth/register`, body);
+    // Si quisieras dejar logueado, añade .pipe(tap(...)) guardando token/refresh/user
+  }
+
+  loginWithCredentials(payload: LoginPayload): Observable<Pair> {
+    return this.http.post<Pair>(`${this.base}/auth/login`, payload).pipe(
+      // en AuthService.loginWithCredentials
+      tap(({ data }) => {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+          const role = data.user.rol || 'estudiante';   // <- usa SIEMPRE el rol del backend
+          localStorage.setItem('role', role);
+          this.roleSubject.next(role);
+        }
+        this.isAuthenticatedSubject.next(true);
+      })
+
     );
   }
 
-
-  // LOGIN → /auth/login (acepta email o rut según tu backend)
-  loginWithCredentials(payload: LoginPayload): Observable<{ data: { token: string; user: any } }> {
-    return this.http.post<{ data: { token: string; user: any } }>(`${this.base}/auth/login`, payload).pipe(
+  refresh(): Observable<Pair> {
+    const refreshToken = localStorage.getItem('refreshToken') || '';
+    return this.http.post<Pair>(`${this.base}/auth/refresh`, { refreshToken }).pipe(
       tap(({ data }) => {
         localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        const role = payload.role || data.user.rol || 'estudiante';
-        localStorage.setItem('role', role);
-        this.isAuthenticatedSubject.next(true);
-        this.roleSubject.next(role);
+        if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
       })
     );
   }
@@ -45,7 +55,10 @@ export class AuthService {
   me() { return this.http.get<{ data: any }>(`${this.base}/auth/me`); }
 
   logout() {
+    const refreshToken = localStorage.getItem('refreshToken') || '';
+    this.http.post(`${this.base}/auth/logout`, { refreshToken }).subscribe({ next: () => {} });
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     localStorage.removeItem('role');
     this.isAuthenticatedSubject.next(false);
