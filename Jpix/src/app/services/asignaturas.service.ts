@@ -27,10 +27,12 @@ export interface Asignatura {
 export class AsignaturasService {
   private base = `${environment.API_URL}/asignaturas`;
   constructor(private http: HttpClient) {}
-  list(): Observable<Asignatura[]> {
-    return this.http.get<ApiResponse<Asignatura[]>>(this.base).pipe(map(r => r.data));
+
+  list() {
+    return this.http.get<{ data: any[] }>(this.base);
   }
-  get(sigla: string): Observable<Asignatura> {
-    return this.http.get<ApiResponse<Asignatura>>(`${this.base}/${sigla}`).pipe(map(r => r.data));
+
+  getBySigla(sigla: string) {
+    return this.http.get<{ data: any }>(`${this.base}/${sigla}`);
   }
 }

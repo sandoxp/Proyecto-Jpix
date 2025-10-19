@@ -1,6 +1,8 @@
+// src/app/pages/login/login.page.ts
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from 'src/app/auth';  // Importamos el servicio de autenticación
+import { AuthService } from 'src/app/auth';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-login',
@@ -9,30 +11,50 @@ import { AuthService } from 'src/app/auth';  // Importamos el servicio de autent
   standalone: false,
 })
 export class LoginPage {
-  role: string = 'estudiante';  // El valor predeterminado es 'estudiante'
-  email: string = '';
-  password: string = '';
-  rut: string = '';  // Definimos la propiedad rut
-  usuario: string = '';  // Definimos la propiedad usuario
+  role: 'estudiante' | 'administrador' = 'estudiante';
+  email = '';     // opcional si lo prefieres explícito
+  usuario = '';   // en tu UI, úsalo como EMAIL para admin
+  rut = '';
+  password = '';
 
-  constructor(private router: Router, private authService: AuthService) {}
+  loading = false;
+
+  constructor(private router: Router, private auth: AuthService) {}
 
   login() {
-    // Validación de campos según el rol seleccionado
+    if (!this.password) return alert('Ingresa tu contraseña');
+
+    const payload: any = { password: this.password, role: this.role };
+
     if (this.role === 'estudiante') {
-      if (this.rut && this.password) {
-        this.authService.login('estudiante');  // Usamos el servicio para registrar el login con el rol
-        this.router.navigate(['/home']);
+      // Login por RUT
+      if (!this.rut) return alert('Ingresa tu RUT');
+      payload.rut = this.rut.trim();
+    } else {
+      // ADMIN: permite login por EMAIL o por RUT
+      const maybeEmail = (this.usuario || '').trim();   // ← Tu input "Usuario" úsalo como email
+      const isEmail = /\S+@\S+\.\S+/.test(maybeEmail);
+
+      if (isEmail) {
+        payload.email = maybeEmail;
+      } else if (this.rut) {
+        payload.rut = this.rut.trim();
       } else {
-        alert('Por favor ingresa un rut y una contraseña válidos');
-      }
-    } else if (this.role === 'administrador') {
-      if (this.usuario && this.rut && this.password) {
-        this.authService.login('administrador');  // Usamos el servicio para registrar el login con el rol
-        this.router.navigate(['/home']);
-      } else {
-        alert('Por favor ingresa un usuario, rut y una contraseña válidos');
+        return alert('Ingresa email (recomendado) o RUT para administrador');
       }
     }
+
+    this.loading = true;
+    this.auth.loginWithCredentials(payload).subscribe({
+      next: () => {
+        this.loading = false;
+        this.router.navigate(['/home']);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.loading = false;
+        const msg = err?.error?.error?.message || 'Credenciales inválidas';
+        alert(msg);
+      }
+    });
   }
 }

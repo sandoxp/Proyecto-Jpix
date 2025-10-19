@@ -87,37 +87,47 @@ export class CatalogoPage {
 
   // ==== Carga y helpers (idénticos a los tuyos) ====
   private async loadFromApi() {
-    try {
-      const simples = await firstValueFrom(this.api.list());
-      const details: (Asignatura | null)[] = await Promise.all(
-        simples.map(a => firstValueFrom(this.api.get(a.sigla)).catch(() => null))
-      );
+  try {
+    // 1) Desestructura para tener un array
+    const { data: simples } = await firstValueFrom(this.api.list());
 
-      const list: Course[] = [];
-      for (const a of details) {
-        if (!a) continue;
-        const approval = this.toApproval(a.tasa_aprobacion_pct, a.tasa_aprobacion);
-        const tipoTxt = this.tipoTexto(a.tipo);
-
-        if (!a.secciones?.length) {
-          list.push({ code: a.sigla, name: a.nombre, type: tipoTxt, credits: a.creditos || 0,
-            professor: '', schedule: ['No tiene'], campus: '', approval });
-          continue;
+    // 2) Tipar 'a' y 3) usar getBySigla (y quedarte con r.data)
+    const details: (Asignatura | null)[] = await Promise.all(
+      simples.map(async (a: Asignatura) => {
+        try {
+          const r = await firstValueFrom(this.api.getBySigla(a.sigla));
+          return r.data; // ← el backend responde { data: ... }
+        } catch {
+          return null;
         }
+      })
+    );
 
-        for (const s of a.secciones) {
-          const campus = this.firstNonEmpty((s.bloques || []).map(b => b.sede || '')) || '';
-          const schedule = this.makeScheduleStrings(s);
-          list.push({
-            code: `${a.sigla}-${s.seccion}`, name: a.nombre, type: tipoTxt,
-            credits: a.creditos || 0, professor: s.docente || '', schedule, campus, approval
-          });
-        }
+    const list: Course[] = [];
+    for (const a of details) {
+      if (!a) continue;
+      const approval = this.toApproval(a.tasa_aprobacion_pct, a.tasa_aprobacion);
+      const tipoTxt = this.tipoTexto(a.tipo);
+
+      if (!a.secciones?.length) {
+        list.push({ code: a.sigla, name: a.nombre, type: tipoTxt, credits: a.creditos || 0,
+          professor: '', schedule: ['No tiene'], campus: '', approval });
+        continue;
       }
-      list.sort((x, y) => x.code.localeCompare(y.code));
-      this.courses = list;
-    } finally { this.loading = false; }
-  }
+
+      for (const s of a.secciones) {
+        const campus = this.firstNonEmpty((s.bloques || []).map(b => b.sede || '')) || '';
+        const schedule = this.makeScheduleStrings(s);
+        list.push({
+          code: `${a.sigla}-${s.seccion}`, name: a.nombre, type: tipoTxt,
+          credits: a.creditos || 0, professor: s.docente || '', schedule, campus, approval
+        });
+      }
+    }
+    list.sort((x, y) => x.code.localeCompare(y.code));
+    this.courses = list;
+  } finally { this.loading = false; }
+}
 
   private diaLabel(d: string): string {
     switch (d) { case 'LUN': return 'Lunes'; case 'MAR': return 'Martes'; case 'MIE': return 'Miércoles';

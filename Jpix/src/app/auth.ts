@@ -18,19 +18,15 @@ export class AuthService {
   constructor(private http: HttpClient) {}
 
   // REGISTRO → /auth/register
-  register(body: { rut: string; nombre: string; email: string; password: string; rol?: 'admin'|'estudiante' })
-  : Observable<{ data: { token: string; user: any } }> {
-    return this.http.post<{ data: { token: string; user: any } }>(`${this.base}/auth/register`, body).pipe(
-      tap(({ data }) => {
-        //logueado al registrarte:
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('role', data.user.rol || 'estudiante');
-        this.isAuthenticatedSubject.next(true);
-        this.roleSubject.next(data.user.rol || 'estudiante');
-      })
+  // src/app/auth.ts
+  register(body: { rut: string; nombre: string; email: string; password: string; rol?: 'admin'|'estudiante' }) {
+    // NO guarda token aquí; solo llama a la API y deja que RegistroPage redirija a /login
+    return this.http.post<{ data: { token: string; user: any } }>(
+      `${this.base}/auth/register`,
+      body
     );
   }
+
 
   // LOGIN → /auth/login (acepta email o rut según tu backend)
   loginWithCredentials(payload: LoginPayload): Observable<{ data: { token: string; user: any } }> {

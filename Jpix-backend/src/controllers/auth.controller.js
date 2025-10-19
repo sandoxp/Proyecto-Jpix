@@ -1,4 +1,6 @@
+// src/controllers/auth.controller.js
 'use strict';
+
 const bcrypt = require('bcryptjs');
 const { Usuario } = require('../models');
 const { signAccessToken } = require('../utils/jwt');
@@ -7,10 +9,10 @@ exports.register = async (req, res, next) => {
   try {
     const { rut, nombre, email, password, rol = 'estudiante' } = req.body;
     if (!rut || !nombre || !email || !password) {
-      return res.status(400).json({ error: { message: 'rut, nombre, email y password son obligatorios', code: 400 }});
+      return res.status(400).json({ error: { message: 'rut, nombre, email y password son obligatorios', code: 400 } });
     }
     const exists = await Usuario.findOne({ where: { email } });
-    if (exists) return res.status(409).json({ error: { message: 'Email ya existe', code: 409 }});
+    if (exists) return res.status(409).json({ error: { message: 'Email ya existe', code: 409 } });
 
     const password_hash = await bcrypt.hash(password, 10);
     const user = await Usuario.create({ rut, nombre, email, password_hash, rol });
@@ -27,15 +29,17 @@ exports.register = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password)
-      return res.status(400).json({ error: { message: 'email y password son obligatorios', code: 400 }});
+    const { email, rut, password } = req.body; // acepta email o rut
+    if ((!email && !rut) || !password) {
+      return res.status(400).json({ error: { message: 'email o rut + password son obligatorios', code: 400 } });
+    }
 
-    const user = await Usuario.findOne({ where: { email } });
-    if (!user) return res.status(401).json({ error: { message: 'Credenciales inválidas', code: 401 }});
+    const where = email ? { email } : { rut };
+    const user = await Usuario.findOne({ where });
+    if (!user) return res.status(401).json({ error: { message: 'Credenciales inválidas', code: 401 } });
 
     const ok = await bcrypt.compare(password, user.password_hash);
-    if (!ok) return res.status(401).json({ error: { message: 'Credenciales inválidas', code: 401 }});
+    if (!ok) return res.status(401).json({ error: { message: 'Credenciales inválidas', code: 401 } });
 
     const token = signAccessToken({ sub: user.id, email: user.email, rol: user.rol });
     res.json({
@@ -48,6 +52,5 @@ exports.login = async (req, res, next) => {
 };
 
 exports.me = async (req, res) => {
-  // req.user viene del middleware auth
   res.json({ data: req.user });
 };
