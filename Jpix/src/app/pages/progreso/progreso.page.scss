@@ -1,0 +1,51 @@
+/* Hace que el título del semestre se quede pegado arriba */
+.semestre-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  cursor: pointer; /* --- AÑADIDO: Indica que es clickeable --- */
+  
+  --padding-start: 16px; // Asegura padding
+  --inner-padding-end: 16px; // Asegura padding
+}
+
+/* --- AÑADIDO: Animación de entrada para la lista --- */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lista-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+
+/* * Clases para los chips de estado. 
+ * Usan los colores estándar de Ionic para mantener la consistencia.
+ */
+
+ion-chip {
+  height: 28px;
+  font-size: 0.8em;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.estado-aprobada {
+  --background: var(--ion-color-success);
+  --color: var(--ion-color-success-contrast);
+}
+
+.estado-cursando {
+  --background: var(--ion-color-warning);
+  --color: var(--ion-color-warning-contrast);
+}
+
+.estado-reprobada {
+  --background: var(--ion-color-danger);
+  --color: var(--ion-color-danger-contrast);
+}
+
+.estado-pendiente {
+  --background: var(--ion-color-light);
+  --color: var(--ion-color-light-contrast);
+}

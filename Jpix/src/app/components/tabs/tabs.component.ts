@@ -28,4 +28,8 @@ export class TabsComponent  implements OnInit {
     this.router.navigate(['/perfil']);
   }
 
+  goToProgreso() {
+  this.router.navigate(['/progreso']);
+}
+
 }

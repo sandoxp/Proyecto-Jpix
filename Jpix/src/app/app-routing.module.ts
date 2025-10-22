@@ -19,19 +19,23 @@ const routes: Routes = [
     loadChildren: () => import('./pages/catalogo/catalogo.module').then( m => m.CatalogoPageModule),
     canActivate: [AuthGuard]  // Protege esta ruta con AuthGuard
   },
-
   {
     path: 'horario',
     loadChildren: () => import('./pages/horario/horario.module').then( m => m.HorarioPageModule),
     canActivate: [AuthGuard]  // Protege esta ruta con AuthGuard
   },
-
   {
     path: 'perfil',
     loadChildren: () => import('./pages/perfil/perfil.module').then( m => m.PerfilPageModule),
     canActivate: [AuthGuard]  // Protege esta ruta con AuthGuard
   },
-
+  // --- NUEVA RUTA AÑADIDA ---
+  {
+    path: 'progreso',
+    loadChildren: () => import('./pages/progreso/progreso.module').then( m => m.ProgresoPageModule),
+    canActivate: [AuthGuard] // Protegida, solo para usuarios logueados
+  },
+  // --- FIN DE LA NUEVA RUTA ---
   {
     path: 'admin/usuarios',
     loadChildren: () => import('./pages/admin-usuarios/admin-usuarios.module').then( m => m.AdminUsuariosPageModule),
@@ -49,10 +53,13 @@ const routes: Routes = [
   {
     path: 'chat',
     loadChildren: () => import('./pages/chat/chat.module').then( m => m.ChatPageModule)
+  },  {
+    path: 'progreso',
+    loadChildren: () => import('./pages/progreso/progreso.module').then( m => m.ProgresoPageModule)
   }
-  
-  
 
+  
+  
 ];
 
 @NgModule({

@@ -1,0 +1,60 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Mi Progreso</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="primary">
+  
+  <div *ngIf="loading" class="ion-text-center ion-padding-top">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Cargando tu progreso...</p>
+  </div>
+
+  <ion-item *ngIf="error" color="danger" lines="none">
+    <ion-icon name="warning" slot="start"></ion-icon>
+    <ion-label>{{ error }}</ion-label>
+  </ion-item>
+
+  <div *ngIf="!loading && !error">
+    
+    <div *ngFor="let semestre of semestres">
+      
+      <ion-item-divider 
+          color="secondary" 
+          sticky 
+          class="semestre-header"
+          button="true"
+          (click)="toggleSemestre(semestre.numero)">
+        
+        <ion-label>
+          {{ esNumero(semestre.numero) ? 'Semestre ' + semestre.numero : semestre.numero }}
+        </ion-label>
+
+        <ion-icon 
+          slot="end" 
+          [name]="openSemestres.has(semestre.numero) ? 'chevron-up-outline' : 'chevron-down-outline'">
+        </ion-icon>
+
+      </ion-item-divider>
+      <ion-list *ngIf="openSemestres.has(semestre.numero)" class="lista-fade-in">
+        <ion-item *ngFor="let asig of semestre.asignaturas" 
+                  (click)="abrirSelectorDeEstado(asig)" 
+                  button 
+                  detail="false">
+          
+          <ion-label>
+            <h3>{{ asig.sigla }}</h3>
+            <p>{{ asig.nombre }}</p>
+          </ion-label>
+
+          <ion-chip slot="end" [ngClass]="'estado-' + asig.estado">
+            <ion-label>{{ asig.estado | titlecase }}</ion-label>
+          </ion-chip>
+
+        </ion-item>
+      </ion-list>
+      </div>
+  </div>
+
+</ion-content>

@@ -1,4 +1,3 @@
-<!-- Menú lateral -->
 <ion-menu contentId="main-content" side="start">
   <ion-header>
     <ion-toolbar>
@@ -10,20 +9,19 @@
       <ion-item routerLink="/home">Home</ion-item>
       <ion-item routerLink="/catalogo">Catálogo</ion-item>
       <ion-item routerLink="/horario">Horario</ion-item>
+
+      <ion-item routerLink="/progreso">Progreso</ion-item>
       <ion-item routerLink="/perfil">Perfil</ion-item>
     </ion-list>
   </ion-content>
 </ion-menu>
 
-<!-- Header superior -->
 <ion-header>
   <ion-toolbar color="dark">
-    <!-- Botón de menú (izquierda) -->
     <ion-buttons slot="start">
       <ion-menu-button autoHide="false"></ion-menu-button>
     </ion-buttons>
 
-    <!-- Marca centrada: JPIX + avatar -->
     <div class="brand" aria-label="JPIX">
       <span class="logo">{{ title }}</span>
       <ion-avatar class="brand-avatar">
@@ -31,7 +29,6 @@
       </ion-avatar>
     </div>
 
-    <!-- Lado derecho: chip (abre popover) -->
     <ion-buttons slot="end">
       <ion-chip
         class="user-chip"
@@ -57,7 +54,6 @@
   </ion-toolbar>
 </ion-header>
 
-<!-- Popover con acciones -->
 <ion-popover
   [isOpen]="roleMenuOpen"
   [event]="roleMenuEvent"

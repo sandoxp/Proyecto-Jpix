@@ -14,5 +14,17 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true
   });
 
+  // --- AÑADIDO ---
+  Usuario.associate = (models) => {
+    // Un usuario tiene muchos registros de progreso
+    Usuario.hasMany(models.ProgresoUsuario, {
+      foreignKey: 'usuario_id',
+      as: 'progreso'
+    });
+    
+    // (Aquí puedes añadir otras asociaciones futuras, como con RefreshToken si quisieras)
+  };
+  // --- FIN DE LO AÑADIDO ---
+
   return Usuario;
 };

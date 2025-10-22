@@ -1,7 +1,8 @@
 'use strict';
 
 const bcrypt = require('bcryptjs');
-const { Usuario, RefreshToken } = require('../models');
+const { Op } = require('sequelize'); // <-- AÑADIDO
+const { Usuario, RefreshToken, Asignatura, ProgresoUsuario } = require('../models'); // <-- AÑADIDO Asignatura y ProgresoUsuario
 const { signAccessToken } = require('../utils/jwt');
 const { randomToken, hashToken, addDays } = require('../utils/tokens');
 
@@ -55,6 +56,41 @@ exports.register = async (req, res, next) => {
       carrera: rol === 'estudiante' ? carrera : null,
       periodo_malla: rol === 'estudiante' ? periodo_malla : null
     });
+
+    // --- ¡¡NUEVA LÓGICA DE AUTOCOMPLETAR!! ---
+    if (user.rol === 'estudiante' && user.periodo_malla && user.periodo_malla > 1) {
+      try {
+        // 1. Buscar asignaturas obligatorias de semestres anteriores
+        const asignaturasAnteriores = await Asignatura.findAll({
+          where: {
+            periodo_malla: {
+              [Op.lt]: user.periodo_malla // lt = Less Than (menor que)
+            },
+            tipo: 'obligatoria' // Solo rellenamos las obligatorias
+          },
+          attributes: ['sigla'] // Solo necesitamos la sigla
+        });
+
+        // 2. Preparar los datos para la inserción masiva
+        const progresosParaCrear = asignaturasAnteriores.map(asig => ({
+          usuario_id: user.id,
+          asignatura_sigla: asig.sigla,
+          estado: 'aprobada' // Marcar como 'aprobada' por defecto
+        }));
+
+        // 3. Insertar todos los registros de progreso de una vez
+        if (progresosParaCrear.length > 0) {
+          await ProgresoUsuario.bulkCreate(progresosParaCrear, {
+            ignoreDuplicates: true // Si ya existe, no hagas nada
+          });
+        }
+        
+      } catch (fillError) {
+        // Si esto falla, no rompemos el registro del usuario. Solo lo logueamos.
+        console.error('Error al autocompletar el progreso del usuario:', fillError);
+      }
+    }
+    // --- FIN DE LA LÓGICA DE AUTOCOMPLETAR ---
 
     const pair = await issuePair(user);
     

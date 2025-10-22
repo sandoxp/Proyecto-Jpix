@@ -8,7 +8,7 @@
 .catalog-slab {
   width: 100%;
   max-width: 980px;
-  background: var(--jpix-catalog-slab-bg);
+  background: var(--jpix-catalog-slab-bg); // Asegúrate de tener esta variable definida en theme/variables.scss
   border-radius: 22px;
   padding: 16px 16px 20px;
   box-sizing: border-box;
@@ -33,19 +33,20 @@
     padding-bottom: 4px;
   }
   .table-width {
-    min-width: 980px;
+    min-width: 980px; // Ancho mínimo para que quepa la tabla sin apretarse
   }
 }
 
 /* Cabecera tipo tabla */
 .table-head {
   display: grid;
+  // Mismas columnas que .course-card .row
   grid-template-columns: 2.1fr 1fr 0.8fr 1.4fr 1.2fr 0.8fr 1fr;
   gap: 12px;
   align-items: center;
-  color: var(--jpix-heading-color);
+  color: var(--jpix-heading-color); // Asegúrate de tener esta variable
   font-weight: 600;
-  padding: 8px 10px 14px;
+  padding: 8px 10px 14px; // Ajusta según necesites
 }
 .th-right {
   text-align: right;
@@ -65,26 +66,27 @@
   border-radius: 18px;
   --inner-padding-end: 0;
   --inner-padding-start: 0;
-  padding: 0;
+  padding: 0; // Quita padding interno del ion-item
 }
 
 .course-card .row {
   width: 100%;
   display: grid;
+  // Mismas columnas que .table-head
   grid-template-columns: 2.1fr 1fr 0.8fr 1.4fr 1.2fr 0.8fr 1fr;
   gap: 12px;
   align-items: center;
-  background: var(--jpix-table-row-bg);
+  background: var(--jpix-table-row-bg); // Asegúrate de tener esta variable
   border-radius: 16px;
-  padding: 14px;
+  padding: 14px; // Padding interno de la fila
   box-sizing: border-box;
   color: var(--ion-text-color);
-  box-shadow: 0 2px 8px var(--jpix-shadow-color);
+  box-shadow: 0 2px 8px var(--jpix-shadow-color); // Asegúrate de tener esta variable
 }
 
 /* Celdas */
 .cell {
-  min-width: 0;
+  min-width: 0; // Para que el texto se ajuste si es necesario
 }
 
 .asignatura .code {
@@ -92,27 +94,27 @@
   margin-bottom: 2px;
 }
 .asignatura .name {
-  line-height: 1.1;
+  line-height: 1.1; // Ajusta según tu fuente
 }
 .tipo {
   font-weight: 700;
 }
 
 .clave .slotline + .slotline {
-  margin-top: 2px;
+  margin-top: 2px; // Espacio entre líneas de horario
 }
 
 /* Aprobacion + boton */
 .aprobacion {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-end; // Alinea a la derecha
   align-items: center;
-  gap: 6px;
+  gap: 6px; // Espacio entre % y botón
 }
 .add-btn {
-  --padding-start: 4px;
+  --padding-start: 4px; // Menos padding en el botón
   --padding-end: 4px;
-  --ripple-color: transparent;
+  --ripple-color: transparent; // Quita efecto ripple si quieres
 }
 
 /* Dots inferiores */
@@ -125,7 +127,7 @@
   margin-top: 6px;
 }
 
-/* Chip usuario */
+/* Chip usuario (Si lo usas en otro lado, puedes borrarlo) */
 .user-chip {
   margin-inline-end: 4px;
 }
@@ -133,43 +135,86 @@
 /* Texto: nowrap en columnas angostas; multilinea donde conviene */
 .table-head .th,
 .cell:not(.asignatura):not(.clave) {
-  white-space: nowrap;
+  white-space: nowrap; // Evita que se corte el texto en celdas angostas
 }
 .cell.asignatura,
 .cell.clave {
-  white-space: normal;
+  white-space: normal; // Permite que el nombre y horario usen varias líneas
 }
 
+/* Título H1 */
 .main-title {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 20px; // Espacio arriba
 }
 
 .main-title h1 {
-  font-size: 2rem;
+  font-size: 2rem; // Tamaño grande
   font-weight: bold;
-  color: var(--jpix-heading-color);
+  color: var(--jpix-heading-color); // Usa tu variable de color de títulos
   margin: 0;
 }
 
 /* Segment de filtros */
 .filters {
-  margin: 8px auto 12px;
-  max-width: 1200px;
-  display: block;
-  --background: transparent;
+  margin: 8px auto 16px; // Añadido margen inferior
+  max-width: 1200px;     // Ancho máximo para el filtro
+  display: block;        // Asegura que ocupe su propio espacio
+  --background: transparent; // Fondo transparente
 }
 .filters ion-segment-button {
-  margin: 0 4px;
-  border-radius: 9999px;
-  --background: var(--jpix-segment-bg);
-  --background-checked: var(--jpix-segment-selected-bg);
-  --color: var(--jpix-segment-text);
-  --color-checked: var(--jpix-segment-selected-text);
-  --indicator-color: transparent;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  margin: 0 4px; // Espacio entre botones
+  border-radius: 9999px; // Botones redondeados
+  --background: var(--jpix-segment-bg); // Variable para fondo normal
+  --background-checked: var(--jpix-segment-selected-bg); // Variable para fondo seleccionado
+  --color: var(--jpix-segment-text); // Variable para texto normal
+  --color-checked: var(--jpix-segment-selected-text); // Variable para texto seleccionado
+  --indicator-color: transparent; // Sin línea indicadora
+  transition: background-color 0.2s ease, color 0.2s ease; // Transición suave
 }
+// Estilo interno del botón para asegurar redondez
 .filters ion-segment-button::part(native) {
   border-radius: 9999px;
-  font-weight: 600;
+  font-weight: 600; // Texto en negrita
 }
+
+// --- AÑADIDO: Estilo para el badge de asignatura reprobada ---
+.reprobada-badge {
+  font-size: 0.7em;
+  margin-bottom: 4px; // Espacio antes de la sigla
+  display: inline-flex; // Para que el ícono y texto se alineen
+  align-items: center;
+  gap: 4px; // Espacio entre ícono y texto
+  --padding-start: 6px;
+  --padding-end: 6px;
+  --padding-top: 3px;
+  --padding-bottom: 3px;
+}
+// --- FIN DE LO AÑADIDO ---
+
+// --- AÑADIDO: Estilo para el banner de link a Progreso ---
+.progress-link-banner {
+  text-align: center;
+  padding: 8px 16px;    // Padding vertical y horizontal
+  margin: 0 auto 16px; // Centrado y con margen inferior aumentado
+  max-width: 980px;    // Mismo ancho que .catalog-slab
+  background: var(--ion-color-warning-tint, #ffce5b); // Fondo amarillo claro
+  color: var(--ion-color-warning-contrast, #000);    // Texto oscuro
+  font-size: 0.9em;
+  font-weight: 500;
+  border-radius: 8px; // Bordes redondeados
+  line-height: 1.4;   // Espaciado entre líneas si el texto se corta
+
+  // Estilo para el link "apretando aquí"
+  a {
+    color: var(--ion-color-primary, #3880ff); // Color primario para el link
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      color: var(--ion-color-primary-shade, #3171e0); // Un poco más oscuro al pasar el mouse
+    }
+  }
+}
+// --- FIN DE LO AÑADIDO ---
