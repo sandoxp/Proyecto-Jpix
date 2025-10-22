@@ -8,33 +8,53 @@
   width: 100%;
   max-width: 720px;
   text-align: center;
-  padding: 8px 12px 28px;
+  padding: 24px 24px 36px;
+  background: var(--jpix-profile-card-bg);
+  color: var(--ion-text-color);
+  border-radius: 20px;
+  box-shadow: 0 16px 32px var(--jpix-shadow-color);
 }
 
 /* Avatar + nombre */
-.avatar-wrap { margin-top: 8px; }
-.avatar-icon { font-size: 94px; color: #111; }
-.student-name { margin: 8px 0 18px; font-size: 28px; font-weight: 700; }
+.avatar-wrap {
+  margin-top: 8px;
+}
+.avatar-icon {
+  font-size: 94px;
+  color: var(--jpix-profile-avatar-color);
+}
+.student-name {
+  margin: 8px 0 18px;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--jpix-heading-color);
+}
 
-/* Chips de información */
+/* Chips de informacion */
 .info-stack {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   justify-items: center;
-  margin: 0 auto 20px;
+  margin: 0 auto 24px;
   max-width: 560px;
 }
 .info-chip {
   width: 100%;
-  background: #e1e1e1;
-  padding: 8px 12px;
-  border-radius: 6px;
+  background: var(--jpix-profile-chip-bg);
+  padding: 10px 14px;
+  border-radius: 8px;
   text-align: left;
-  line-height: 1.2;
+  line-height: 1.25;
   box-sizing: border-box;
+  color: var(--jpix-profile-chip-text);
+  box-shadow: 0 4px 10px var(--jpix-shadow-color);
 }
-.info-chip b { font-weight: 800; }
-.info-chip em { font-style: italic; }
+.info-chip b {
+  font-weight: 800;
+}
+.info-chip em {
+  font-style: italic;
+}
 
 /* Botones */
 .actions {
@@ -45,22 +65,24 @@
   margin: 20px auto 0;
 }
 .flat-gray-btn {
-  --background: #c9c9c9;
-  --color: #111;
-  --border-radius: 10px;
-  --box-shadow: 0 3px 0 #a7a7a7;
+  --background: var(--jpix-profile-button-bg);
+  --color: var(--jpix-profile-button-text);
+  --border-radius: 12px;
+  --box-shadow: 0 4px 0 var(--jpix-profile-button-shadow);
   font-weight: 700;
 }
-.flat-gray-btn.ion-activated { filter: brightness(0.96); }
-
-/* ===== Modal ===== */
-/* Quitamos --height:auto que colapsaba el contenido */
-.edit-modal {
-  --width: 640px;     /* ancho cómodo en escritorio */
-  --max-width: 95vw;  /* no sobrepasar viewport */
+.flat-gray-btn.ion-activated {
+  filter: brightness(0.96);
 }
-/* padding interno del contenido del modal */
-.form-pad { padding: 12px 16px 24px; }
+
+/* Modal */
+.edit-modal {
+  --width: 640px;
+  --max-width: 95vw;
+}
+.form-pad {
+  padding: 12px 16px 24px;
+}
 .modal-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -70,27 +92,25 @@
 
 /* Responsive */
 @media (max-width: 520px) {
-  .actions, .modal-actions { grid-template-columns: 1fr; }
+  .actions,
+  .modal-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Chip en header */
-.user-chip { margin-inline-end: 6px; }
-
-/* Dark mode */
-:host-context(.dark) {
-  .avatar-icon { color: #f1f1f1; }
-  .info-chip { background: #d0d0d0; }
-  .flat-gray-btn { --background: #bdbdbd; --box-shadow: 0 3px 0 #9d9d9d; }
+.user-chip {
+  margin-inline-end: 6px;
 }
 
 .main-title {
-  text-align: center; /* Centra el texto horizontalmente */
-  margin-top: 20px; /* Espacio superior opcional */
+  text-align: center;
+  margin-top: 20px;
 }
 
 h1 {
-  font-size: 2rem; /* Ajusta el tamaño de fuente */
+  font-size: 2rem;
   font-weight: bold;
-  color: var(--ion-color-dark); /* O el color que prefieras */
-  margin: 0; /* Elimina márgenes extra si los hay */
+  color: var(--jpix-heading-color);
+  margin: 0;
 }

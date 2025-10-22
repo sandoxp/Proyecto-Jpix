@@ -8,20 +8,21 @@
   margin-bottom: 16px;
 
   h1 {
-    font-size: 24px;   /* puedes ajustar según Figma */
+    font-size: 24px;   /* puedes ajustar segun Figma */
     font-weight: 700;
-    color: #000;       /* negro, como en tu mock */
+    color: var(--jpix-heading-color);       /* negro, como en tu mock */
   }
 }
 .options-box {
-  background: #d3cdcd; /* gris */
+  background: var(--jpix-surface-strong); /* gris */
   padding: 16px;
   margin: 0 auto 20px; /* auto para centrar */
   border-radius: 6px;
   text-align: center;
+  color: var(--ion-text-color);
 
-  max-width: 700px; /* 👈 límite de ancho */
-  width: 90%;       /* 👈 en pantallas chicas ocupa casi todo */
+  max-width: 700px; /* limite de ancho */
+  width: 90%;       /* en pantallas chicas ocupa casi todo */
 }
 
 
@@ -30,6 +31,7 @@
   font-weight: 500;
   margin-bottom: 12px;
   text-decoration: underline dotted;
+  color: var(--jpix-heading-color);
 }
 
 .options-buttons {
@@ -44,7 +46,7 @@
   --color: var(--ion-color-secondary-contrast);  /* Letra blanca */
   font-size: 14px;
   font-weight: 500;
-  text-transform: none;    /* evita mayúsculas automáticas */
+  text-transform: none;    /* evita mayusculas automaticas */
   border-radius: 2px;
   height: 20px;
   padding: 0 12px;
@@ -57,43 +59,43 @@
   max-width: 900px;
   width: 92%;
   margin: 16px auto 24px;
-  border: 1.5px solid #000;
+  border: 1.5px solid var(--jpix-border-strong);
   border-radius: 4px;
   overflow: hidden;
-  background: #dcdcdc; /* gris del mock */
+  background: var(--jpix-surface-muted); /* gris del mock */
 }
 
 /* Input grande y plano */
 .search__input {
   flex: 1 1 auto;
-  --background: #dcdcdc;
-  --color: #000;
+  --background: var(--jpix-surface-muted);
+  --color: var(--ion-text-color);
   --padding-start: 16px;
   --padding-end: 16px;
-  --highlight-color-focused: transparent; /* sin línea azul al foco */
+  --highlight-color-focused: transparent; /* sin linea azul al foco */
 
-  /* tamaño del texto dentro del input */
+  /* tamano del texto dentro del input */
   &::part(native) {
-    padding: 12px 0; /* alto del rectángulo */
+    padding: 12px 0; /* alto del rectangulo */
     font-size: 20px;
     font-weight: 700;
   }
 
   /* placeholder negro y visible */
   input::placeholder {
-    color: #000;
+    color: var(--jpix-heading-color);
     opacity: 1;
     font-weight: 700;
   }
 }
 
-/* Separador vertical antes del botón */
+/* Separador vertical antes del boton */
 .search__divider {
   width: 1px;
-  background: #000;
+  background: var(--jpix-divider-strong);
 }
 
-/* Botón de lupa a la derecha */
+/* Boton de lupa a la derecha */
 .search__btn {
   --padding-start: 12px;
   --padding-end: 12px;
@@ -104,7 +106,7 @@
 
 .search__btn ion-icon {
   font-size: 24px;
-  color: #000;
+  color: var(--jpix-heading-color);
 }
 
 .suggestion {
@@ -114,10 +116,11 @@
   max-width: 900px;
   width: 92%;
   margin: 8px auto 32px; /* separa del buscador */
+  color: var(--ion-text-color);
 }
 
 .suggestion__avatar {
-  width: 84px;      /* ajusta según tu imagen */
+  width: 84px;      /* ajusta segun tu imagen */
   height: 84px;
   object-fit: contain; /* respeta proporciones */
   display: block;
@@ -140,11 +143,11 @@
 .chat-box {
   margin-top: 20px;
   padding: 10px;
-  background-color: #f0f0f0;
+  background-color: var(--jpix-chat-panel-bg);
   border-radius: 8px;
   height: 200px;
   overflow-y: auto;
-  transition: all 0.5s ease; /* Suavizamos la expansión */
+  transition: all 0.5s ease; /* Suavizamos la expansion */
 }
 
 .chat-messages {
@@ -155,17 +158,17 @@
 
 .chat-message {
   padding: 5px;
-  background-color: #fff;
+  background-color: var(--jpix-chat-message-bg);
   border-radius: 5px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 5px var(--jpix-shadow-color);
 }
 
 .chat-message p {
   margin: 0;
+  color: var(--ion-text-color);
 }
 
 /* Agregar un estado cuando el chat se expande */
 .chat-box.expand {
   height: 300px; /* Puedes ajustar la altura */
 }
-

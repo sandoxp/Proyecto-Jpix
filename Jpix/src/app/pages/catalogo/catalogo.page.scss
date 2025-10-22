@@ -8,31 +8,32 @@
 .catalog-slab {
   width: 100%;
   max-width: 980px;
-  background: #8e8e8e; /* gris del mock */
+  background: var(--jpix-catalog-slab-bg);
   border-radius: 22px;
   padding: 16px 16px 20px;
   box-sizing: border-box;
+  color: var(--ion-text-color);
 }
 
 /* ======== DESKTOP por defecto (sin barra horizontal) ======== */
-.h-scroll {           /* en desktop ocultamos cualquier overflow horizontal */
+.h-scroll {
   overflow-x: hidden;
 }
-.table-width {        /* ocupa todo el ancho disponible */
+.table-width {
   width: 100%;
 }
 
-/* ======== MÓVIL (<=900px): activar scroll lateral ======== */
+/* ======== MOVIL (<=900px): activar scroll lateral ======== */
 @media (max-width: 900px) {
   .h-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
     scrollbar-gutter: stable both-edges;
-    padding-bottom: 4px; /* deja espacio para la barra */
+    padding-bottom: 4px;
   }
   .table-width {
-    min-width: 980px; /* evita compresión del grid */
+    min-width: 980px;
   }
 }
 
@@ -42,17 +43,19 @@
   grid-template-columns: 2.1fr 1fr 0.8fr 1.4fr 1.2fr 0.8fr 1fr;
   gap: 12px;
   align-items: center;
-  color: #000;
+  color: var(--jpix-heading-color);
   font-weight: 600;
   padding: 8px 10px 14px;
 }
-.th-right { text-align: right; }
+.th-right {
+  text-align: right;
+}
 
 /* Lista y tarjetas */
 .course-list {
   margin: 0;
   padding: 0 4px;
-  --background: transparent;  /* sin franja blanca */
+  --background: transparent;
   background: transparent;
 }
 
@@ -71,22 +74,35 @@
   grid-template-columns: 2.1fr 1fr 0.8fr 1.4fr 1.2fr 0.8fr 1fr;
   gap: 12px;
   align-items: center;
-  background: #dedede;      /* gris claro del mock */
+  background: var(--jpix-table-row-bg);
   border-radius: 16px;
   padding: 14px;
   box-sizing: border-box;
+  color: var(--ion-text-color);
+  box-shadow: 0 2px 8px var(--jpix-shadow-color);
 }
 
 /* Celdas */
-.cell { min-width: 0; }
+.cell {
+  min-width: 0;
+}
 
-.asignatura .code { font-weight: 800; margin-bottom: 2px; }
-.asignatura .name { line-height: 1.1; }
-.tipo { font-weight: 700; }
+.asignatura .code {
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+.asignatura .name {
+  line-height: 1.1;
+}
+.tipo {
+  font-weight: 700;
+}
 
-.clave .slotline + .slotline { margin-top: 2px; }
+.clave .slotline + .slotline {
+  margin-top: 2px;
+}
 
-/* Aprobación + botón */
+/* Aprobacion + boton */
 .aprobacion {
   display: flex;
   justify-content: flex-end;
@@ -104,36 +120,36 @@
   text-align: center;
   font-size: 22px;
   letter-spacing: 6px;
-  color: #fff;
+  color: var(--jpix-heading-color);
   opacity: 0.9;
   margin-top: 6px;
 }
 
 /* Chip usuario */
-.user-chip { margin-inline-end: 4px; }
+.user-chip {
+  margin-inline-end: 4px;
+}
 
 /* Texto: nowrap en columnas angostas; multilinea donde conviene */
 .table-head .th,
-.cell:not(.asignatura):not(.clave) { white-space: nowrap; }
+.cell:not(.asignatura):not(.clave) {
+  white-space: nowrap;
+}
 .cell.asignatura,
-.cell.clave { white-space: normal; }
-
-/* Dark mode opcional */
-:host-context(.dark) {
-  .catalog-slab { background: #5a5a5a; }
-  .course-card .row { background: #cfcfcf; }
+.cell.clave {
+  white-space: normal;
 }
 
 .main-title {
-  text-align: center; /* Centra el texto horizontalmente */
-  margin-top: 20px; /* Espacio superior opcional */
+  text-align: center;
+  margin-top: 20px;
 }
 
-h1 {
-  font-size: 2rem; /* Ajusta el tamaño de fuente */
+.main-title h1 {
+  font-size: 2rem;
   font-weight: bold;
-  color: var(--ion-color-dark); /* O el color que prefieras */
-  margin: 0; /* Elimina márgenes extra si los hay */
+  color: var(--jpix-heading-color);
+  margin: 0;
 }
 
 /* Segment de filtros */
@@ -146,9 +162,14 @@ h1 {
 .filters ion-segment-button {
   margin: 0 4px;
   border-radius: 9999px;
-  --indicator-color: var(--ion-color-primary);
-  --background: #dcdcdc;
-  --color: #000;
-  --color-checked: #fff;
+  --background: var(--jpix-segment-bg);
+  --background-checked: var(--jpix-segment-selected-bg);
+  --color: var(--jpix-segment-text);
+  --color-checked: var(--jpix-segment-selected-text);
+  --indicator-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
-
+.filters ion-segment-button::part(native) {
+  border-radius: 9999px;
+  font-weight: 600;
+}

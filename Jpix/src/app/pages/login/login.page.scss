@@ -1,85 +1,146 @@
 ion-content {
-  --background: var(--ion-color-primary);
+  --background: var(--jpix-login-background);
+  color: var(--jpix-login-text);
 }
 
-/* Centrado del logo */
-.login-logo {
+ion-content::part(scroll) {
   display: flex;
   justify-content: center;
+  padding: 48px 16px 64px;
+  min-height: 100%;
+}
+
+.login-shell {
+  width: 100%;
+  max-width: 520px;
+}
+
+.login-panel {
+  background: var(--jpix-login-panel-bg);
+  color: var(--jpix-login-panel-text);
+  border-radius: 24px;
+  padding: 36px 32px 40px;
+  box-shadow: 0 24px 48px var(--jpix-login-panel-shadow);
+  backdrop-filter: blur(12px);
+}
+
+.login-logo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  margin-top: 20px;
+  gap: 10px;
+  margin-bottom: 18px;
+  text-transform: uppercase;
+  letter-spacing: 4px;
 }
 
 .login-logo img {
-  width: 120px; /* Ajusta el tamaño del logo */
+  width: 110px;
   height: auto;
+  filter: drop-shadow(0 14px 18px var(--jpix-login-panel-shadow));
 }
 
-/* Texto de bienvenida */
+.login-logo h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  color: inherit;
+}
+
 .welcome-text {
   text-align: center;
-  margin: 20px 0;
-}
-
-.welcome-text h1 {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin: 10px 0;
+  margin-bottom: 22px;
 }
 
 .welcome-text h2 {
-  font-size: 1.8rem;
-  font-weight: bold;
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: inherit;
 }
 
 .welcome-text p {
-  font-size: 1.2rem;
-  color: var(--ion-color-primary-contrast);
+  margin: 8px 0 0;
+  font-size: 1rem;
+  color: var(--jpix-login-segment-text);
 }
 
-/* Estilos de los campos */
-ion-item {
-  margin-bottom: 15px;
-}
-
-ion-button {
-  margin-top: 20px;
-}
-
-/* Enlace para registro */
-.register-link {
-  margin-top: 20px;
-  text-align: center;
-}
-
-/* Enlace para registro */
-.register-link {
-  margin-top: 20px;
-  text-align: center;
-
-  // 👇 AÑADIR ESTO
-  p, a {
-    color: var(--ion-color-primary-contrast); // Letra blanca
-  }
-
-  a {
-    font-weight: bold;
-    text-decoration: underline;
-  }
-}
-
-/* Estilos del segment (Estudiante / Admin) */
 ion-segment {
-  margin-top: 20px;
-  margin-bottom: 10px;
-  --background: rgba(255, 255, 255, 0.2); // Fondo semi-transparente
-  border-radius: 8px;
+  margin: 0 0 20px;
+  --background: var(--jpix-login-segment-bg);
+  border-radius: 16px;
+  padding: 4px;
 }
 
 ion-segment-button {
-  --color: rgba(255, 255, 255, 0.7); // Letras NO seleccionadas (blanco opaco)
-  --color-checked: #FFFFFF; // 👈 LETRAS SELECCIONADAS (blanco sólido)
-  --indicator-color: #FFFFFF; // 👈 Línea inferior (blanca)
+  --color: var(--jpix-login-segment-text);
+  --color-checked: var(--jpix-login-segment-text-active);
+  --indicator-color: var(--jpix-login-segment-indicator);
   text-transform: uppercase;
   font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+ion-segment-button::part(native) {
+  border-radius: 12px;
+}
+
+.login-form ion-item {
+  margin-bottom: 16px;
+  --background: var(--jpix-login-input-bg);
+  --border-radius: 14px;
+  --highlight-color-focused: var(--jpix-login-segment-indicator);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  border: 1px solid var(--jpix-login-input-border);
+  backdrop-filter: blur(6px);
+}
+
+.login-form ion-label,
+.login-form ion-input {
+  color: var(--jpix-login-input-text);
+}
+
+.login-form ion-input::part(native) {
+  color: var(--jpix-login-input-text);
+}
+
+.login-action {
+  margin-top: 12px;
+  --background: var(--jpix-login-button-bg);
+  --color: var(--jpix-login-button-text);
+  --border-radius: 14px;
+  --box-shadow: 0 18px 24px var(--jpix-login-panel-shadow);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.login-action.ion-focused,
+.login-action.ion-activated {
+  filter: brightness(1.05);
+}
+
+.register-link {
+  margin-top: 22px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--jpix-login-panel-text);
+}
+
+.register-link a {
+  color: var(--jpix-login-button-bg);
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .login-panel {
+    padding: 28px 22px 34px;
+    border-radius: 20px;
+  }
+
+  ion-content::part(scroll) {
+    padding: 32px 16px 40px;
+  }
 }

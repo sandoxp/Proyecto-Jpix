@@ -7,58 +7,61 @@
 -->
 
 <ion-content>
-  <!-- Logo -->
-  <div class="login-logo">
-    <img src="assets/images/assistant-logo.png" alt="Asistente Jpix" />
-    <h1>JPIX</h1>
-  </div>
+  <div class="login-shell">
+    <div class="login-panel">
+      <!-- Logo -->
+      <div class="login-logo">
+        <img src="assets/images/assistant-logo.png" alt="Asistente Jpix" />
+        <h1>JPIX</h1>
+      </div>
 
-  <!-- Bienvenida -->
-  <div class="welcome-text">
-    <h2>Bienvenido a tu asistente virtual</h2>
-    <p>Selecciona tu rol</p>
-  </div>
+      <!-- Bienvenida -->
+      <div class="welcome-text">
+        <h2>Bienvenido a tu asistente virtual</h2>
+        <p>Selecciona tu rol</p>
+      </div>
 
-  <!-- Rol -->
-  <ion-segment [(ngModel)]="role" color="primary">
-    <ion-segment-button value="estudiante">Estudiante</ion-segment-button>
-    <ion-segment-button value="admin">Administrador</ion-segment-button>
-  </ion-segment>
+      <!-- Rol -->
+      <ion-segment [(ngModel)]="role" color="primary">
+        <ion-segment-button value="estudiante">Estudiante</ion-segment-button>
+        <ion-segment-button value="admin">Administrador</ion-segment-button>
+      </ion-segment>
 
-  <!-- Formularios -->
-  <div *ngIf="role">
-    <!-- Estudiante -->
-    <ion-item *ngIf="role === 'estudiante'">
-      <ion-label position="floating">Rut</ion-label>
-      <ion-input type="text" [(ngModel)]="rut"></ion-input>
-    </ion-item>
+      <!-- Formularios -->
+      <div *ngIf="role" class="login-form">
+        <!-- Estudiante -->
+        <ion-item *ngIf="role === 'estudiante'">
+          <ion-label position="floating">Rut</ion-label>
+          <ion-input type="text" [(ngModel)]="rut"></ion-input>
+        </ion-item>
 
-    <ion-item *ngIf="role === 'estudiante'">
-      <ion-label position="floating">Contraseña</ion-label>
-      <ion-input type="password" [(ngModel)]="password"></ion-input>
-    </ion-item>
+        <ion-item *ngIf="role === 'estudiante'">
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input type="password" [(ngModel)]="password"></ion-input>
+        </ion-item>
 
-    <!-- Admin -->
-    <ion-item *ngIf="role === 'admin'">
-      <ion-label position="floating">Email</ion-label>
-      <!-- ANTES: [(ngModel)]="usuario" -->
-      <ion-input type="text" [(ngModel)]="email"></ion-input>
-    </ion-item>
+        <!-- Admin -->
+        <ion-item *ngIf="role === 'admin'">
+          <ion-label position="floating">Email</ion-label>
+          <ion-input type="text" [(ngModel)]="email"></ion-input>
+        </ion-item>
 
-    <ion-item *ngIf="role === 'admin'">
-      <ion-label position="floating">Rut (opcional)</ion-label>
-      <ion-input type="text" [(ngModel)]="rut"></ion-input>
-    </ion-item>
+        <ion-item *ngIf="role === 'admin'">
+          <ion-label position="floating">Rut (opcional)</ion-label>
+          <ion-input type="text" [(ngModel)]="rut"></ion-input>
+        </ion-item>
 
-    <ion-item *ngIf="role === 'admin'">
-      <ion-label position="floating">Contraseña</ion-label>
-      <ion-input type="password" [(ngModel)]="password"></ion-input>
-    </ion-item>
-  </div>
+        <ion-item *ngIf="role === 'admin'">
+          <ion-label position="floating">Contraseña</ion-label>
+          <ion-input type="password" [(ngModel)]="password"></ion-input>
+        </ion-item>
+      </div>
 
-  <ion-button expand="full" (click)="login()" color="secondary">Iniciar sesión</ion-button>
+      <ion-button expand="block" (click)="login()" class="login-action">Iniciar sesión</ion-button>
 
-  <div class="register-link">
-    <p>¿Aún no tienes cuenta? <a routerLink="/registro">Regístrate aquí</a></p>
+      <div class="register-link">
+        <p>¿Aún no tienes cuenta? <a routerLink="/registro">Regístrate aquí</a></p>
+      </div>
+    </div>
   </div>
 </ion-content>

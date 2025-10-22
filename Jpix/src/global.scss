@@ -75,3 +75,19 @@ body {
     --padding-bottom: 72px; /* ajusta según la altura real de tu tab bar */
   }
 }
+:root {
+  --background: #ffffff;
+  --text-color: #1a1a1a;
+  --primary: #3880ff;
+}
+
+body.dark {
+  --background: #121212;
+  --text-color: #f0f0f0;
+  --primary: #4c8dff;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-color);
+}

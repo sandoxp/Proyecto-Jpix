@@ -11,7 +11,7 @@ import { AuthService } from './auth';// Importamos el servicio
 export class AppComponent implements OnInit {
   isLoggedIn: boolean = false;  // Estado de autenticación
   loading: boolean = true; // Variable para controlar el estado de carga
-
+  isDarkMode = false;
   constructor(private router: Router, private authService: AuthService) {}
 
   ngOnInit() {
@@ -28,8 +28,14 @@ export class AppComponent implements OnInit {
     } else {
       this.isLoggedIn = true;
     }
+
+
   }
 
+  toggleDarkMode(){
+    this.isDarkMode = !this.isDarkMode;
+    document.body.classList.toggle('dark', this.isDarkMode);
+  }
   // Función para hacer logout
   logout() {
     this.authService.logout(); // Usamos el servicio de autenticación para hacer logout
