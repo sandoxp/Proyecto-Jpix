@@ -4,52 +4,52 @@
 @use "sass:math";
 
 :root {
-  // definimos colores semejantes a los que usa la pucv para integrarlo de mejor forma
-  --ion-color-primary: #004d9c;
-  --ion-color-primary-rgb: 0, 77, 156;
-  --ion-color-primary-contrast: #ffffff;
+
+  /* 1. BANNER CELESTE (Color Primario) */
+  --ion-color-primary: #339fc3;
+  --ion-color-primary-rgb: 51, 159, 195;
+  --ion-color-primary-contrast: #ffffff; /* Letra blanca sobre celeste */
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #004489;
-  --ion-color-primary-tint: #1a60a5;
+  --ion-color-primary-shade: #2d8cae;
+  --ion-color-primary-tint: #47a8cb;
 
-  // estos colores los utilizaremos para algunas de las funciones de nuestro sitio
-  --ion-color-success: #28a745; // Mensaje "Horario válido generado"
-  --ion-color-warning: #ffc107; // Advertencia "Traslado inviable"
-  --ion-color-danger: #dc3545;  // Alerta "Choque detectado"
+  /* 2. BOTONES NARANJOS (Color Secundario) */
+  --ion-color-secondary: #e87e04;
+  --ion-color-secondary-rgb: 232, 126, 4;
+  --ion-color-secondary-contrast: #ffffff; /* Letra blanca sobre naranjo */
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #cc6f03;
+  --ion-color-secondary-tint: #ea8b1d;
 
-  // estos seran los colores de texto y de fondo para generar buen contraste, super importante en diseno
-  --ion-background-color: #f4f5f8;
-  --ion-background-color-rgb: 244, 245, 248;
+  /* Colores de estado (Mantenemos los que tenías) */
+  --ion-color-success: #28a745;
+  --ion-color-warning: #ffc107;
+  --ion-color-danger: #dc3545;
+
+  /* 3. FONDO BLANCO */
+  --ion-background-color: #ffffff;
+  --ion-background-color-rgb: 255, 255, 255;
+
+  /* 4. LETRAS NEGRAS (sobre fondo blanco) */
   --ion-text-color: #1f2937;
   --ion-text-color-rgb: 31, 41, 55;
 
-  // modificamos la tipografia
+  /* Colores para componentes específicos */
+  --ion-item-background: #ffffff;
+  --ion-toolbar-background: var(--ion-color-primary); /* Banners celestes */
+  --ion-tab-bar-background: var(--ion-color-primary); /* Tabs celestes */
+  --ion-tab-bar-color: var(--ion-color-primary-contrast); /* Letras tabs blancas */
+  --ion-tab-bar-color-selected: var(--ion-color-primary-contrast); /* Letras tabs blancas */
+
+  // Tipografía (Mantenemos la tuya)
   --ion-font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
 }
 
-
-// utilizaremos esta funcion para convertir píxeles a rem, manteniendo la accesibilidad de la tipografía
+// Funciones y Mixins (Mantenemos los tuyos)
 @function rem($px) {
   @return math.div($px, 16) * 1rem;
 }
 
-// usamos mixin para crear una sombra suave, de momento usaremos esto en cards y formularios.
 @mixin elevate($y: 4px, $blur: 12px, $alpha: 0.1) {
   box-shadow: 0 $y $blur rgba(0, 0, 0, $alpha);
 }
-
-// Cen este bloque pondremosun modo oscuro para el usuario
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    // colores de fondo oscuros para un mejor contraste en la noche
-    --ion-background-color: #121212;
-    --ion-background-color-rgb: 18, 18, 18;
-    --ion-text-color: #e5e5e5;
-    --ion-text-color-rgb: 229, 229, 229;
-
-    // y suavizamos el primario para que no sea demasiado brillante en fondo oscuro
-    --ion-color-primary: #4a90e2;
-    --ion-color-primary-shade: #417eb6;
-    --ion-color-primary-tint: #5c99e5;
-  }
-} */

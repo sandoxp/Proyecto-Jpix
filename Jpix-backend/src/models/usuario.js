@@ -5,6 +5,8 @@ module.exports = (sequelize, DataTypes) => {
     rut:           { type: DataTypes.STRING, allowNull: false, unique: true },
     nombre:        { type: DataTypes.STRING, allowNull: false },
     email:         { type: DataTypes.STRING, allowNull: false, unique: true },
+    carrera:       { type: DataTypes.STRING, allowNull: true },
+    periodo_malla: { type: DataTypes.INTEGER, allowNull: true },
     password_hash: { type: DataTypes.STRING, allowNull: false },
     rol:           { type: DataTypes.ENUM('admin','estudiante'), allowNull: false, defaultValue: 'estudiante' }
   }, {

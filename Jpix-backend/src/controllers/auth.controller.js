@@ -22,28 +22,63 @@ async function issuePair(user) {
   return { token, refreshToken: rawRefresh };
 }
 
+// ==================================================================
+// ================== FUNCIÓN MODIFICADA (register) =================
+// ==================================================================
 exports.register = async (req, res, next) => {
   try {
-    const { rut, nombre, email, password, rol = 'estudiante' } = req.body;
+    // --- MODIFICADO: Añadimos carrera y periodo_malla ---
+    const { rut, nombre, email, password, rol = 'estudiante', carrera, periodo_malla } = req.body;
+    
     if (!rut || !nombre || !email || !password) {
       return res.status(400).json({ error: { message: 'rut, nombre, email y password son obligatorios', code: 400 }});
     }
+
+    // --- NUEVA VALIDACIÓN: Campos obligatorios para estudiantes ---
+    if (rol === 'estudiante' && (!carrera || periodo_malla === undefined)) {
+      return res.status(400).json({ error: { message: 'carrera y periodo_malla son obligatorios para estudiantes', code: 400 }});
+    }
+
     const exists = await Usuario.findOne({ where: { email } });
     if (exists) return res.status(409).json({ error: { message: 'Email ya existe', code: 409 }});
 
     const password_hash = await bcrypt.hash(password, 10);
-    const user = await Usuario.create({ rut, nombre, email, password_hash, rol });
+
+    // --- MODIFICADO: Pasamos los nuevos campos al .create ---
+    // (Usamos un ternario para guardarlos como null si el rol es 'admin')
+    const user = await Usuario.create({ 
+      rut, 
+      nombre, 
+      email, 
+      password_hash, 
+      rol,
+      carrera: rol === 'estudiante' ? carrera : null,
+      periodo_malla: rol === 'estudiante' ? periodo_malla : null
+    });
 
     const pair = await issuePair(user);
+    
+    // --- MODIFICADO: Devolvemos los nuevos campos en la respuesta ---
     res.status(201).json({
       data: {
         token: pair.token,
         refreshToken: pair.refreshToken,
-        user: { id: user.id, rut: user.rut, nombre: user.nombre, email: user.email, rol: user.rol }
+        user: { 
+          id: user.id, 
+          rut: user.rut, 
+          nombre: user.nombre, 
+          email: user.email, 
+          rol: user.rol,
+          carrera: user.carrera,
+          periodo_malla: user.periodo_malla
+        }
       }
     });
   } catch (err) { next(err); }
 };
+// ==================================================================
+// ================== FIN DE LA MODIFICACIÓN ========================
+// ==================================================================
 
 exports.login = async (req, res, next) => {
   try {
@@ -64,7 +99,16 @@ exports.login = async (req, res, next) => {
       data: {
         token: pair.token,
         refreshToken: pair.refreshToken,
-        user: { id: user.id, rut: user.rut, nombre: user.nombre, email: user.email, rol: user.rol }
+        // --- NOTA: También actualicé la respuesta del login para incluir los nuevos campos ---
+        user: { 
+          id: user.id, 
+          rut: user.rut, 
+          nombre: user.nombre, 
+          email: user.email, 
+          rol: user.rol,
+          carrera: user.carrera,
+          periodo_malla: user.periodo_malla
+        }
       }
     });
   } catch (err) { next(err); }

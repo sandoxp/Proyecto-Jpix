@@ -23,6 +23,11 @@ export class RegistroPage {
   confirmPassword: string = '';
   termsAccepted: boolean = false;
 
+  // --- 👇 AQUÍ ESTÁ LA PARTE QUE FALTA ---
+  carrera: string = '';
+  periodo_malla: number | null = null;
+  // --- 👆 FIN DE LA PARTE QUE FALTA ---
+
   loading = false;
 
   constructor(private router: Router, private auth: AuthService) {} // 👈 inyecta AuthService
@@ -45,20 +50,34 @@ export class RegistroPage {
       alert('Por favor, ingresa tu RUT');
       return;
     }
+    
+    // --- 👇 VALIDACIÓN DE LOS NUEVOS CAMPOS ---
+    if (!this.carrera || !this.periodo_malla) {
+      alert('Por favor, ingresa tu carrera y período/semestre');
+      return;
+    }
+    if (this.periodo_malla <= 0) {
+      alert('El período/semestre debe ser un número válido');
+      return;
+    }
+    // --- 👆 FIN NUEVA VALIDACIÓN ---
 
     // Payload para el backend (usa /auth/register)
+    // --- 👇 MODIFICADO: Se añaden los nuevos campos al body ---
     const body = {
       rut: this.documentType === 'rut' ? this.rut : 'SIN-RUT',
       nombre: this.username,
       email: this.email,
       password: this.password,
-      rol: 'estudiante' as 'estudiante' | 'admin' // por defecto
+      rol: 'estudiante' as 'estudiante' | 'admin', // por defecto
+      carrera: this.carrera,
+      periodo_malla: this.periodo_malla
     };
 
     this.loading = true;
 
-    // 👇 AQUÍ va la llamada que te pasé
-   this.auth.register(body).subscribe({
+    // 👇 AQUÍ va la llamada
+    this.auth.register(body).subscribe({ 
       next: () => {
         this.loading = false;
         alert('Registro exitoso, inicia sesión');

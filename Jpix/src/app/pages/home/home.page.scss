@@ -40,8 +40,8 @@
 }
 
 .option-btn {
-  --background: #7a7a7a;   /* gris oscuro */
-  --color: #000;           /* texto negro */
+  --background: var(--ion-color-secondary);      /* Naranjo */
+  --color: var(--ion-color-secondary-contrast);  /* Letra blanca */
   font-size: 14px;
   font-weight: 500;
   text-transform: none;    /* evita mayúsculas automáticas */

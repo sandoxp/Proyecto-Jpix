@@ -3,8 +3,8 @@
 }
 
 ion-toolbar {
-  --background: var(--ion-color-dark, #222428);
-  --color: #fff;
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
   position: relative;
   min-height: 56px;
   display: flex;

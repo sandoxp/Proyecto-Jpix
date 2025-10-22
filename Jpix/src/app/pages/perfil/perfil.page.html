@@ -1,19 +1,4 @@
-<!-- Header
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>Perfil Estudiante</ion-title>
-    <ion-buttons slot="end">
-      <ion-chip color="medium" outline="true" class="user-chip" aria-label="Rol">
-        <ion-icon name="person-circle-outline"></ion-icon>
-        <ion-label>Estudiante</ion-label>
-      </ion-chip>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
--->
-
 <ion-content>
-  <!-- Título central -->
   <div class="main-title">
     <h1>Perfil del usuario</h1>
   </div>
@@ -21,22 +6,17 @@
   <div class="profile-shell">
     <div class="profile-card">
 
-      <!-- Avatar + Nombre -->
       <div class="avatar-wrap">
         <ion-icon name="person-circle-outline" class="avatar-icon" aria-hidden="true"></ion-icon>
       </div>
-      <h1 class="student-name">{{ profile.nombre || 'XXXX XXXX XXXX' }}</h1>
+      <h1 class="student-name">{{ profile?.nombre }}</h1>
 
-      <!-- Bloque de datos -->
       <div class="info-stack">
-        <div class="info-chip"><b>RUT:</b> <span>{{ profile.rut || '12.345.678-9' }}</span></div>
-        <div class="info-chip"><b>Carrera:</b> <em>{{ profile.carrera || 'Ingeniería en Informática' }}</em></div>
-        <div class="info-chip"><b>Año ingreso:</b> <span>{{ profile.anioIngreso || '2023' }}</span></div>
-        <div class="info-chip"><b>Celular:</b> <span>{{ profile.celular || '+56912345678' }}</span></div>
-        <div class="info-chip"><b>Correo electrónico:</b> <span>{{ profile.email || 'xxxxxx@gmail.com' }}</span></div>
+        <div class="info-chip"><b>RUT:</b> <span>{{ profile?.rut }}</span></div>
+        <div class="info-chip"><b>Carrera:</b> <em>{{ profile?.carrera }}</em></div>
+        <div class="info-chip"><b>Período Malla:</b> <span>{{ profile?.periodo_malla }}</span></div>
+        <div class="info-chip"><b>Correo electrónico:</b> <span>{{ profile?.email }}</span></div>
       </div>
-
-      <!-- Botones -->
       <div class="actions">
         <ion-button class="flat-gray-btn" expand="block" (click)="openEdit()">
           Modificar datos
@@ -48,7 +28,6 @@
     </div>
   </div>
 
-  <!-- ===== Modal de edición (corregido) ===== -->
   <ion-modal
     [isOpen]="editOpen"
     (didDismiss)="closeEdit()"
@@ -66,7 +45,6 @@
         </ion-toolbar>
       </ion-header>
 
-      <!-- Quitar fullscreen evita conflictos con altura del modal -->
       <ion-content>
         <form [formGroup]="form" class="form-pad" (ngSubmit)="save()" autocomplete="off">
 
@@ -87,17 +65,12 @@
             <ion-label position="stacked">Carrera</ion-label>
             <ion-input formControlName="carrera" placeholder="Ingeniería en Informática"></ion-input>
           </ion-item>
-
+          
           <ion-item lines="full">
-            <ion-label position="stacked">Año ingreso</ion-label>
-            <ion-input type="number" formControlName="anioIngreso" placeholder="2023"></ion-input>
+            <ion-label position="stacked">Período Malla (Semestre)</ion-label>
+            <ion-input type="number" formControlName="periodo_malla" placeholder="6"></ion-input>
           </ion-item>
-
-          <ion-item lines="full">
-            <ion-label position="stacked">Celular</ion-label>
-            <ion-input formControlName="celular" placeholder="+56912345678"></ion-input>
-          </ion-item>
-
+          
           <ion-item lines="full">
             <ion-label position="stacked">Correo electrónico</ion-label>
             <ion-input type="email" formControlName="email" placeholder="nombre@dominio.com"></ion-input>
@@ -107,8 +80,9 @@
           </ion-note>
 
           <div class="modal-actions">
-            <ion-button type="submit" [disabled]="form.invalid" class="flat-gray-btn" expand="block">
-              Guardar cambios
+            <ion-button type="submit" [disabled]="form.invalid || isSaving" class="flat-gray-btn" expand="block">
+              <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+              <span *ngIf="!isSaving">Guardar cambios</span>
             </ion-button>
             <ion-button fill="outline" expand="block" (click)="closeEdit()">Cancelar</ion-button>
           </div>

@@ -1,3 +1,7 @@
+ion-content {
+  --background: var(--ion-color-primary);
+}
+
 /* Centrado del logo */
 .login-logo {
   display: flex;
@@ -30,7 +34,7 @@
 
 .welcome-text p {
   font-size: 1.2rem;
-  color: #777;
+  color: var(--ion-color-primary-contrast);
 }
 
 /* Estilos de los campos */
@@ -48,3 +52,34 @@ ion-button {
   text-align: center;
 }
 
+/* Enlace para registro */
+.register-link {
+  margin-top: 20px;
+  text-align: center;
+
+  // 👇 AÑADIR ESTO
+  p, a {
+    color: var(--ion-color-primary-contrast); // Letra blanca
+  }
+
+  a {
+    font-weight: bold;
+    text-decoration: underline;
+  }
+}
+
+/* Estilos del segment (Estudiante / Admin) */
+ion-segment {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  --background: rgba(255, 255, 255, 0.2); // Fondo semi-transparente
+  border-radius: 8px;
+}
+
+ion-segment-button {
+  --color: rgba(255, 255, 255, 0.7); // Letras NO seleccionadas (blanco opaco)
+  --color-checked: #FFFFFF; // 👈 LETRAS SELECCIONADAS (blanco sólido)
+  --indicator-color: #FFFFFF; // 👈 Línea inferior (blanca)
+  text-transform: uppercase;
+  font-weight: 600;
+}

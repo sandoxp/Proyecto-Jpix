@@ -45,6 +45,6 @@ export class HorarioPage {
   }
 
   onSearch() { console.log('Buscar:', this.query); }
-  onConsultarClaves() { console.log('Consultar claves'); }
+  // onConsultarClaves() { console.log('Consultar claves'); }
   toggleDaltonismo() { document.body.classList.toggle('alto-contraste'); }
 }

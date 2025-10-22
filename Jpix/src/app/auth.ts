@@ -18,21 +18,27 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  // REGISTRO: (elige si guardar token o redirigir a /login)
-  register(body: { rut: string; nombre: string; email: string; password: string; rol?: 'admin'|'estudiante' }): Observable<Pair> {
+  // REGISTRO: (Ya incluye los campos nuevos, está correcto)
+  register(body: { 
+    rut: string; 
+    nombre: string; 
+    email: string; 
+    password: string; 
+    rol?: 'admin'|'estudiante';
+    carrera?: string;
+    periodo_malla?: number | null;
+  }): Observable<Pair> {
     return this.http.post<Pair>(`${this.base}/auth/register`, body);
-    // Si quisieras dejar logueado, añade .pipe(tap(...)) guardando token/refresh/user
   }
 
   loginWithCredentials(payload: LoginPayload): Observable<Pair> {
     return this.http.post<Pair>(`${this.base}/auth/login`, payload).pipe(
-      // en AuthService.loginWithCredentials
       tap(({ data }) => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('refreshToken', data.refreshToken);
         if (data.user) {
           localStorage.setItem('user', JSON.stringify(data.user));
-          const role = data.user.rol || 'estudiante';   // <- usa SIEMPRE el rol del backend
+          const role = data.user.rol || 'estudiante';
           localStorage.setItem('role', role);
           this.roleSubject.next(role);
         }
@@ -53,6 +59,36 @@ export class AuthService {
   }
 
   me() { return this.http.get<{ data: any }>(`${this.base}/auth/me`); }
+
+  // ==================================================================
+  // ================== 👇 FUNCIÓN AÑADIDA 👇 =======================
+  // ==================================================================
+  /**
+   * Actualiza el perfil del propio usuario logueado
+   * Llama al endpoint: PUT /api/v1/usuarios/me
+   */
+  updateSelf(body: { 
+    nombre?: string; 
+    email?: string; 
+    carrera?: string;
+    periodo_malla?: number;
+  }): Observable<Pair> { 
+    // Tu backend usa el endpoint PUT /usuarios/me
+    return this.http.put<Pair>(`${this.base}/usuarios/me`, body).pipe(
+      tap(({ data }) => {
+        // Actualiza el 'user' en localStorage con la respuesta
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+          const role = data.user.rol || 'estudiante';
+          localStorage.setItem('role', role);
+          this.roleSubject.next(role);
+        }
+      })
+    );
+  }
+  // ==================================================================
+  // ================== 👆 FIN DE FUNCIÓN AÑADIDA 👆 ==================
+  // ==================================================================
 
   logout() {
     const refreshToken = localStorage.getItem('refreshToken') || '';
