@@ -198,3 +198,211 @@ body.dark {
 @mixin elevate($y: 4px, $blur: 12px, $alpha: 0.1) {
   box-shadow: 0 $y $blur rgba(0, 0, 0, $alpha);
 }
+
+/*
+=============================================================================
+| MODO DALTÓNICO (COLORBLIND)
+| Paleta basada en la paleta de Paul Tol y esquemas Azul/Naranja
+| para máxima distinguibilidad (Evita rojo/verde).
+=============================================================================
+*/
+body.colorblind {
+  /* Colores base (Paleta alto contraste) */
+  /* 1. Primario: Azul Fuerte */
+  --ion-color-primary: #0072B2;
+  --ion-color-primary-rgb: 0, 114, 178;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #00639d;
+  --ion-color-primary-tint: #1a7fb8;
+
+  /* 2. Secundario: Naranja */
+  --ion-color-secondary: #E69F00;
+  --ion-color-secondary-rgb: 230, 159, 0;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #ca8c00;
+  --ion-color-secondary-tint: #e7a81a;
+
+  /* Colores de estado */
+  --ion-color-success: #009E73; /* Verde azulado */
+  --ion-color-warning: #F0E442; /* Amarillo */
+  --ion-color-danger: #D55E00; /* Bermellón (Naranja oscuro) */
+
+  /* 3. Fondo (Mantenemos blanco para modo claro daltónico) */
+  --ion-background-color: #ffffff;
+  --ion-background-color-rgb: 255, 255, 255;
+
+  /* 4. Texto (Mantenemos negro) */
+  --ion-text-color: #1f2937;
+  --ion-text-color-rgb: 31, 41, 55;
+
+  /* Colores para componentes específicos */
+  --ion-item-background: #ffffff;
+  --ion-toolbar-background: var(--ion-color-primary); /* Banner Azul */
+  --ion-tab-bar-background: var(--ion-color-primary); /* Tabs Azul */
+  --ion-tab-bar-color: var(--ion-color-primary-contrast);
+  --ion-tab-bar-color-selected: var(--ion-color-primary-contrast);
+
+  --ion-card-background: #fdfdfd; // Ligeramente gris
+  --ion-border-color: #cccccc;
+
+  /* Tokens de superficie JPIX (Modo Claro Daltónico) */
+  --jpix-heading-color: #000000;
+  --jpix-surface-strong: #d3cdcd;
+  --jpix-surface-muted: #dcdcdc;
+  --jpix-border-strong: #000000;
+  --jpix-divider-strong: #000000;
+  --jpix-chat-panel-bg: #f0f0f0;
+  --jpix-chat-message-bg: #ffffff;
+  --jpix-shadow-color: rgba(0, 0, 0, 0.1);
+  --jpix-catalog-slab-bg: #8e8e8e;
+  --jpix-table-row-bg: #dedede;
+  --jpix-segment-bg: #dcdcdc;
+  --jpix-segment-text: #000000;
+  --jpix-segment-selected-bg: var(--ion-color-secondary); /* Naranja */
+  --jpix-segment-selected-text: var(--ion-color-secondary-contrast);
+
+  /* Horario: Paleta de alto contraste (Azul, Naranja, Amarillo, Gris) */
+  --jpix-schedule-page-bg: #ffffff;
+  --jpix-schedule-text-strong: #1b1b1b;
+  --jpix-schedule-text-muted: #6b6b6b;
+  --jpix-schedule-card-bg: #f5f5f5;
+  --jpix-schedule-border: #d8d8d8;
+  --jpix-schedule-table-bg: #ffffff;
+  --jpix-schedule-table-header-bg: #f3f3f3;
+  --jpix-schedule-hour-bg: #fafafa;
+  --jpix-schedule-cell-border: #ececec;
+  --jpix-schedule-search-bg: #eaeaea;
+
+  /* Leyenda y Celdas (Colores Clave) */
+  /* Original: obligatorio (gris), optativo (gris claro), fofu (azul), ingles (verde) */
+  --jpix-schedule-legend-obligatorio: #888888;  /* Gris (OK) */
+  --jpix-schedule-legend-optativo: #cccccc;  /* Gris claro (OK) */
+  --jpix-schedule-legend-fofu: #0072B2;     /* Azul (Primario) */
+  --jpix-schedule-legend-ingles: #E69F00;   /* Naranja (Secundario) */
+  
+  --jpix-schedule-cell-obligatorio: #d3d3d3; /* Gris */
+  --jpix-schedule-cell-optativo: #f2f2f2; /* Gris claro */
+  --jpix-schedule-cell-fofu: #e0f2ff;     /* Azul claro */
+  --jpix-schedule-cell-ingles: #fff8e6;   /* Naranja claro */
+
+  /* Perfil */
+  --jpix-profile-card-bg: #ffffff;
+  --jpix-profile-avatar-color: #111111;
+  --jpix-profile-chip-bg: #e1e1e1;
+  --jpix-profile-chip-text: #1b1b1b;
+  --jpix-profile-button-bg: #c9c9c9;
+  --jpix-profile-button-text: #111111;
+  --jpix-profile-button-shadow: #a7a7a7;
+  
+  /* Login */
+  --jpix-login-background: var(--ion-color-primary); /* Azul */
+  --jpix-login-text: #ffffff;
+  --jpix-login-panel-bg: rgba(255, 255, 255, 0.95);
+  --jpix-login-panel-text: #1a1f2c;
+  --jpix-login-panel-shadow: rgba(15, 23, 42, 0.25);
+  --jpix-login-segment-bg: rgba(255, 255, 255, 0.85);
+  --jpix-login-segment-text: #4b5563;
+  --jpix-login-segment-text-active: #0f172a;
+  --jpix-login-segment-indicator: var(--ion-color-primary); /* Azul */
+  --jpix-login-input-bg: #ffffff;
+  --jpix-login-input-border: rgba(15, 23, 42, 0.15);
+  --jpix-login-input-text: #1f2937;
+  --jpix-login-button-bg: var(--ion-color-secondary); /* Naranja */
+  --jpix-login-button-text: var(--ion-color-secondary-contrast);
+
+  /*
+  =============================================================================
+  | MODO DALTÓNICO + MODO OSCURO (Combinados)
+  | Se activa cuando body.colorblind y body.dark están presentes.
+  =============================================================================
+  */
+  &.dark {
+    /* Colores base (Paleta alto contraste sobre fondo oscuro) */
+    --ion-color-primary: #56B4E9;  /* Azul Cielo (Claro) */
+    --ion-color-primary-contrast: #000000;
+    --ion-color-secondary: #E69F00; /* Naranja (Mismo, es brillante) */
+    --ion-color-secondary-contrast: #000000;
+
+    --ion-color-success: #009E73; /* Verde azulado */
+    --ion-color-warning: #F0E442; /* Amarillo */
+    --ion-color-danger: #D55E00; /* Bermellón */
+
+    /* Fondo y texto */
+    --ion-background-color: #000000;
+    --ion-text-color: #ffffff;
+
+    /* Fondos oscuros */
+    --ion-item-background: #000000;
+    --ion-toolbar-background: #000000;
+    --ion-tab-bar-background: #000000;
+    --ion-tab-bar-color: #ffffff;
+    --ion-tab-bar-color-selected: var(--ion-color-primary); /* Azul Cielo */
+
+    --ion-card-background: #121212;
+    --ion-border-color: #333333;
+
+    /* Personalización Jpix (Modo Oscuro Daltónico) */
+    --jpix-heading-color: #f8f9fa;
+    --jpix-surface-strong: #1a1a1a;
+    --jpix-surface-muted: #2a2a2a;
+    --jpix-border-strong: #f5f5f5;
+    --jpix-divider-strong: var(--ion-color-primary); /* Azul Cielo */
+    --jpix-chat-panel-bg: #141414;
+    --jpix-chat-message-bg: #1f1f1f;
+    --jpix-shadow-color: rgba(0, 0, 0, 0.4);
+    --jpix-catalog-slab-bg: #1f1f1f;
+    --jpix-table-row-bg: #2a2a2a;
+    --jpix-segment-bg: #333333;
+    --jpix-segment-text: #f0f0f0;
+    --jpix-segment-selected-bg: var(--ion-color-secondary); /* Naranja */
+    --jpix-segment-selected-text: #000000;
+    --jpix-schedule-page-bg: #0f0f0f;
+    --jpix-schedule-text-strong: #f3f3f3;
+    --jpix-schedule-text-muted: #b0b0b0;
+    --jpix-schedule-card-bg: #1b1b1b;
+    --jpix-schedule-border: #2c2c2c;
+    --jpix-schedule-table-bg: #161616;
+    --jpix-schedule-table-header-bg: #202020;
+    --jpix-schedule-hour-bg: #1a1a1a;
+    --jpix-schedule-cell-border: #333333;
+    --jpix-schedule-search-bg: #292929;
+
+    /* Leyenda y Celdas (Oscuro Daltónico) */
+    --jpix-schedule-legend-obligatorio: #525252; /* Gris oscuro */
+    --jpix-schedule-legend-optativo: #3a3a3a; /* Gris muy oscuro */
+    --jpix-schedule-legend-fofu: #0072B2;     /* Azul (Oscuro) */
+    --jpix-schedule-legend-ingles: #E69F00;   /* Naranja */
+
+    --jpix-schedule-cell-obligatorio: #424242;
+    --jpix-schedule-cell-optativo: #353535;
+    --jpix-schedule-cell-fofu: #004a75;     /* Azul oscuro celda */
+    --jpix-schedule-cell-ingles: #735000;   /* Naranja oscuro celda */
+
+    /* Perfil */
+    --jpix-profile-card-bg: #141414;
+    --jpix-profile-avatar-color: #f1f1f1;
+    --jpix-profile-chip-bg: #2c2c2c;
+    --jpix-profile-chip-text: #f3f3f3;
+    --jpix-profile-button-bg: #3a3a3a;
+    --jpix-profile-button-text: #f5f5f5;
+    --jpix-profile-button-shadow: #1f1f1f;
+
+    /* Login */
+    --jpix-login-background: #050505;
+    --jpix-login-text: #f5f5f5;
+    --jpix-login-panel-bg: rgba(8, 8, 8, 0.82);
+    --jpix-login-panel-shadow: rgba(0, 0, 0, 0.55);
+    --jpix-login-panel-text: #f5f5f5;
+    --jpix-login-segment-bg: rgba(86, 180, 233, 0.16);
+    --jpix-login-segment-text: #7bc8e9;
+    --jpix-login-segment-text-active: #ffffff;
+    --jpix-login-segment-indicator: var(--ion-color-primary); /* Azul Cielo */
+    --jpix-login-input-bg: #111820;
+    --jpix-login-input-border: #2f4d5c;
+    --jpix-login-input-text: #f0f6f8;
+    --jpix-login-button-bg: var(--ion-color-secondary); /* Naranja */
+    --jpix-login-button-text: #000000;
+  }
+}

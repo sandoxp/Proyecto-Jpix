@@ -1,21 +1,23 @@
 <ion-app>
-  <!-- Mostrar un loading mientras verificamos el estado de autenticación -->
   <ion-loading *ngIf="loading" message="Verificando autenticación..."></ion-loading>
 
-  <!-- Mostrar el header solo si el usuario está logueado -->
   <app-header *ngIf="isLoggedIn && !loading"></app-header>
 
-  <!-- Mostrar el tabbar solo si el usuario está logueado -->
   <app-tabs *ngIf="isLoggedIn && !loading"></app-tabs>
 
-  <!-- El contenido de la página solo después de verificar la autenticación -->
   <div id="main-content" *ngIf="!loading">
-    <ion-router-outlet></ion-router-outlet>
-  </div>
+  <ion-router-outlet></ion-router-outlet>
+ </div>
 
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="toggleDarkMode()" size="small">
-      <ion-icon [name]="isDarkMode ? 'sunny' : 'moon'"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+   <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-container-horizontal">
+  
+    <ion-fab-button (click)="toggleColorblindMode()" title="Modo Daltónico" color="light">
+   <ion-icon [name]="isColorblindMode ? 'eye-off' : 'eye'"></ion-icon>
+  </ion-fab-button>
+
+      <ion-fab-button (click)="toggleDarkMode()" title="Modo Oscuro" color="light">
+   <ion-icon [name]="isDarkMode ? 'sunny' : 'moon'"></ion-icon>
+  </ion-fab-button>
+
+ </ion-fab>
 </ion-app>
