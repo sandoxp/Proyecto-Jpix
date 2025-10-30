@@ -1,16 +1,21 @@
 'use strict';
 
 const bcrypt = require('bcryptjs');
-const { Op } = require('sequelize'); // <-- AÑADIDO
-const { Usuario, RefreshToken, Asignatura, ProgresoUsuario } = require('../models'); // <-- AÑADIDO Asignatura y ProgresoUsuario
+const { Op } = require('sequelize');
+const { Usuario, RefreshToken, Asignatura, ProgresoUsuario } = require('../models');
+// --- MODIFICADO: Se añade 'ira' al payload del token ---
 const { signAccessToken } = require('../utils/jwt');
 const { randomToken, hashToken, addDays } = require('../utils/tokens');
 
 const REFRESH_DAYS = parseInt(process.env.REFRESH_DAYS || '7', 10);
 
+// ==================================================================
+// ================== FUNCIÓN MODIFICADA (issuePair) ================
+// ==================================================================
 // Genera par (access + refresh) y guarda refresh en BD (hash)
 async function issuePair(user) {
-  const token = signAccessToken({ sub: user.id, email: user.email, rol: user.rol });
+  // --- MODIFICADO: Añadimos 'ira' al token ---
+  const token = signAccessToken({ sub: user.id, email: user.email, rol: user.rol, ira: user.ira });
   const rawRefresh = randomToken(64);
   const token_hash = hashToken(rawRefresh);
 
@@ -22,22 +27,29 @@ async function issuePair(user) {
 
   return { token, refreshToken: rawRefresh };
 }
+// ================== FIN DE LA MODIFICACIÓN ========================
+
 
 // ==================================================================
 // ================== FUNCIÓN MODIFICADA (register) =================
 // ==================================================================
 exports.register = async (req, res, next) => {
   try {
-    // --- MODIFICADO: Añadimos carrera y periodo_malla ---
-    const { rut, nombre, email, password, rol = 'estudiante', carrera, periodo_malla } = req.body;
+    // --- MODIFICADO: Añadimos 'ira' ---
+    const { rut, nombre, email, password, rol = 'estudiante', carrera, periodo_malla, ira } = req.body;
     
     if (!rut || !nombre || !email || !password) {
       return res.status(400).json({ error: { message: 'rut, nombre, email y password son obligatorios', code: 400 }});
     }
 
-    // --- NUEVA VALIDACIÓN: Campos obligatorios para estudiantes ---
-    if (rol === 'estudiante' && (!carrera || periodo_malla === undefined)) {
-      return res.status(400).json({ error: { message: 'carrera y periodo_malla son obligatorios para estudiantes', code: 400 }});
+    // --- NUEVA VALIDACIÓN: 'ira' también es obligatorio ---
+    if (rol === 'estudiante' && (!carrera || periodo_malla === undefined || !ira)) {
+      return res.status(400).json({ error: { message: 'carrera, periodo_malla e ira son obligatorios para estudiantes', code: 400 }});
+    }
+
+    // --- NUEVA VALIDACIÓN: 'ira' debe ser un valor válido ---
+    if (rol === 'estudiante' && !['bajo', 'medio', 'alto'].includes(ira)) {
+      return res.status(400).json({ error: { message: "El campo 'ira' debe ser 'bajo', 'medio' o 'alto'", code: 400 }});
     }
 
     const exists = await Usuario.findOne({ where: { email } });
@@ -46,7 +58,6 @@ exports.register = async (req, res, next) => {
     const password_hash = await bcrypt.hash(password, 10);
 
     // --- MODIFICADO: Pasamos los nuevos campos al .create ---
-    // (Usamos un ternario para guardarlos como null si el rol es 'admin')
     const user = await Usuario.create({ 
       rut, 
       nombre, 
@@ -54,39 +65,36 @@ exports.register = async (req, res, next) => {
       password_hash, 
       rol,
       carrera: rol === 'estudiante' ? carrera : null,
-      periodo_malla: rol === 'estudiante' ? periodo_malla : null
+      periodo_malla: rol === 'estudiante' ? periodo_malla : null,
+      ira: rol === 'estudiante' ? ira : 'bajo' // Si es admin, se pone 'bajo' por defecto
     });
 
-    // --- ¡¡NUEVA LÓGICA DE AUTOCOMPLETAR!! ---
+    // --- LÓGICA DE AUTOCOMPLETAR (Sin cambios) ---
     if (user.rol === 'estudiante' && user.periodo_malla && user.periodo_malla > 1) {
       try {
-        // 1. Buscar asignaturas obligatorias de semestres anteriores
         const asignaturasAnteriores = await Asignatura.findAll({
           where: {
             periodo_malla: {
-              [Op.lt]: user.periodo_malla // lt = Less Than (menor que)
+              [Op.lt]: user.periodo_malla
             },
-            tipo: 'obligatoria' // Solo rellenamos las obligatorias
+            tipo: 'obligatoria'
           },
-          attributes: ['sigla'] // Solo necesitamos la sigla
+          attributes: ['sigla']
         });
 
-        // 2. Preparar los datos para la inserción masiva
         const progresosParaCrear = asignaturasAnteriores.map(asig => ({
           usuario_id: user.id,
           asignatura_sigla: asig.sigla,
-          estado: 'aprobada' // Marcar como 'aprobada' por defecto
+          estado: 'aprobada'
         }));
 
-        // 3. Insertar todos los registros de progreso de una vez
         if (progresosParaCrear.length > 0) {
           await ProgresoUsuario.bulkCreate(progresosParaCrear, {
-            ignoreDuplicates: true // Si ya existe, no hagas nada
+            ignoreDuplicates: true
           });
         }
         
       } catch (fillError) {
-        // Si esto falla, no rompemos el registro del usuario. Solo lo logueamos.
         console.error('Error al autocompletar el progreso del usuario:', fillError);
       }
     }
@@ -94,7 +102,7 @@ exports.register = async (req, res, next) => {
 
     const pair = await issuePair(user);
     
-    // --- MODIFICADO: Devolvemos los nuevos campos en la respuesta ---
+    // --- MODIFICADO: Devolvemos 'ira' en la respuesta ---
     res.status(201).json({
       data: {
         token: pair.token,
@@ -106,7 +114,8 @@ exports.register = async (req, res, next) => {
           email: user.email, 
           rol: user.rol,
           carrera: user.carrera,
-          periodo_malla: user.periodo_malla
+          periodo_malla: user.periodo_malla,
+          ira: user.ira // <-- AÑADIDO
         }
       }
     });
@@ -118,7 +127,7 @@ exports.register = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    const { email, rut, password } = req.body; // acepta email o rut
+    const { email, rut, password } = req.body;
     if ((!email && !rut) || !password) {
       return res.status(400).json({ error: { message: 'email o rut + password son obligatorios', code: 400 }});
     }
@@ -135,7 +144,7 @@ exports.login = async (req, res, next) => {
       data: {
         token: pair.token,
         refreshToken: pair.refreshToken,
-        // --- NOTA: También actualicé la respuesta del login para incluir los nuevos campos ---
+        // --- MODIFICADO: Devolvemos 'ira' en la respuesta del login ---
         user: { 
           id: user.id, 
           rut: user.rut, 
@@ -143,7 +152,8 @@ exports.login = async (req, res, next) => {
           email: user.email, 
           rol: user.rol,
           carrera: user.carrera,
-          periodo_malla: user.periodo_malla
+          periodo_malla: user.periodo_malla,
+          ira: user.ira // <-- AÑADIDO
         }
       }
     });
@@ -161,16 +171,25 @@ exports.refresh = async (req, res, next) => {
       return res.status(401).json({ error: { message: 'Refresh inválido', code: 401 }});
     }
 
-    // rotación: invalida el viejo y crea uno nuevo
     const user = await Usuario.findByPk(row.user_id);
+    
+    // --- MODIFICADO: issuePair ahora usa el 'user' completo y pasará el 'ira' al nuevo token ---
     const { token, refreshToken: newRaw } = await (async () => {
-      const access = signAccessToken({ sub: user.id, email: user.email, rol: user.rol });
+      // Re-usamos issuePair para mantener la lógica centralizada
+      await row.update({ revoked_at: new Date() }); // Invalida el token viejo
+      return await issuePair(user); // Emite un nuevo par
+    })();
+    
+    /* // Lógica anterior de rotación (la he reemplazado por la llamada a issuePair)
+    const { token, refreshToken: newRaw } = await (async () => {
+      const access = signAccessToken({ sub: user.id, email: user.email, rol: user.rol }); // <-- Lógica antigua
       const raw = randomToken(64);
       const h = hashToken(raw);
       await row.update({ revoked_at: new Date(), replaced_by_hash: h });
       await RefreshToken.create({ token_hash: h, user_id: user.id, expires_at: addDays(new Date(), REFRESH_DAYS) });
       return { token: access, refreshToken: raw };
     })();
+    */
 
     res.json({ data: { token, refreshToken: newRaw }});
   } catch (err) { next(err); }

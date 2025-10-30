@@ -8,13 +8,21 @@ module.exports = (sequelize, DataTypes) => {
     carrera:       { type: DataTypes.STRING, allowNull: true },
     periodo_malla: { type: DataTypes.INTEGER, allowNull: true },
     password_hash: { type: DataTypes.STRING, allowNull: false },
-    rol:           { type: DataTypes.ENUM('admin','estudiante'), allowNull: false, defaultValue: 'estudiante' }
+    rol:           { type: DataTypes.ENUM('admin','estudiante'), allowNull: false, defaultValue: 'estudiante' },
+    
+    // --- CAMPO AÑADIDO ---
+    ira: {
+      type: DataTypes.ENUM('bajo', 'medio', 'alto'),
+      allowNull: false,
+      defaultValue: 'bajo'
+    }
+    // --- FIN DE LO AÑADIDO ---
+
   }, {
     tableName: 'usuarios',
     timestamps: true
   });
 
-  // --- AÑADIDO ---
   Usuario.associate = (models) => {
     // Un usuario tiene muchos registros de progreso
     Usuario.hasMany(models.ProgresoUsuario, {
@@ -24,7 +32,6 @@ module.exports = (sequelize, DataTypes) => {
     
     // (Aquí puedes añadir otras asociaciones futuras, como con RefreshToken si quisieras)
   };
-  // --- FIN DE LO AÑADIDO ---
 
   return Usuario;
 };

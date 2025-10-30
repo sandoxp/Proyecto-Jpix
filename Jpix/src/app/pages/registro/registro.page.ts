@@ -22,11 +22,12 @@ export class RegistroPage {
   password: string = '';
   confirmPassword: string = '';
   termsAccepted: boolean = false;
-
-  // --- 👇 AQUÍ ESTÁ LA PARTE QUE FALTA ---
   carrera: string = '';
   periodo_malla: number | null = null;
-  // --- 👆 FIN DE LA PARTE QUE FALTA ---
+  
+  // --- 👇 CAMPO AÑADIDO ---
+  ira: string = ''; // 'bajo', 'medio', o 'alto'
+  // --- 👆 FIN DE LO AÑADIDO ---
 
   loading = false;
 
@@ -51,13 +52,19 @@ export class RegistroPage {
       return;
     }
     
-    // --- 👇 VALIDACIÓN DE LOS NUEVOS CAMPOS ---
+    // --- 👇 VALIDACIÓN DE CAMPOS ACADÉMICOS ---
     if (!this.carrera || !this.periodo_malla) {
       alert('Por favor, ingresa tu carrera y período/semestre');
       return;
     }
     if (this.periodo_malla <= 0) {
       alert('El período/semestre debe ser un número válido');
+      return;
+    }
+    
+    // --- 👇 VALIDACIÓN DE IRA AÑADIDA ---
+    if (!this.ira) {
+      alert('Por favor, selecciona tu nivel de Riesgo Académico (IRA)');
       return;
     }
     // --- 👆 FIN NUEVA VALIDACIÓN ---
@@ -71,12 +78,12 @@ export class RegistroPage {
       password: this.password,
       rol: 'estudiante' as 'estudiante' | 'admin', // por defecto
       carrera: this.carrera,
-      periodo_malla: this.periodo_malla
+      periodo_malla: this.periodo_malla,
+      ira: this.ira // <-- AÑADIDO
     };
 
     this.loading = true;
 
-    // 👇 AQUÍ va la llamada
     this.auth.register(body).subscribe({ 
       next: () => {
         this.loading = false;

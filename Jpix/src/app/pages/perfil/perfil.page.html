@@ -15,6 +15,7 @@
         <div class="info-chip"><b>RUT:</b> <span>{{ profile?.rut }}</span></div>
         <div class="info-chip"><b>Carrera:</b> <em>{{ profile?.carrera }}</em></div>
         <div class="info-chip"><b>Período Malla:</b> <span>{{ profile?.periodo_malla }}</span></div>
+        <div class="info-chip"><b>Riesgo (IRA):</b> <span>{{ profile?.ira | titlecase }}</span></div>
         <div class="info-chip"><b>Correo electrónico:</b> <span>{{ profile?.email }}</span></div>
       </div>
       <div class="actions">
@@ -79,6 +80,14 @@
             Ingresa un correo válido.
           </ion-note>
 
+          <ion-item lines="full">
+            <ion-label position="stacked">Índice de Riesgo Académico (IRA)</ion-label>
+            <ion-select formControlName="ira" placeholder="Selecciona tu nivel de riesgo" required>
+              <ion-select-option value="bajo">Bajo (Sin riesgo)</ion-select-option>
+              <ion-select-option value="medio">Medio (Riesgo medio)</ion-select-option>
+              <ion-select-option value="alto">Alto (Riesgo alto)</ion-select-option>
+            </ion-select>
+          </ion-item>
           <div class="modal-actions">
             <ion-button type="submit" [disabled]="form.invalid || isSaving" class="flat-gray-btn" expand="block">
               <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>

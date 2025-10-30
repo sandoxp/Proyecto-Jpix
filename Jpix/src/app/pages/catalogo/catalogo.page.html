@@ -3,18 +3,39 @@
     <h1>Catálogo de asignaturas</h1>
   </div>
 
+  <div class="ion-padding-horizontal ion-padding-bottom" *ngIf="!loading && userIRA !== 'bajo'" style="padding-top: 0;">
+    <ion-text color="medium"><small>SOBRECARGA ACADÉMICA (IRA: {{ userIRA | uppercase }})</small></ion-text>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.1em; margin-top: 8px;">
+      <span>Créditos (Oblig/Opt): <strong>{{ currentCredits }}</strong></span>
+      <span style="font-weight: 500;">Límite: {{ maxCredits }}</span>
+    </div>
+    <ion-progress-bar [value]="currentCredits / maxCredits"
+                      [color]="currentCredits > maxCredits ? 'danger' : 'secondary'"
+                      style="margin-top: 6px; height: 8px; border-radius: 4px;">
+    </ion-progress-bar>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.1em; margin-top: 12px;">
+      <span>Asignaturas FOFU: <strong>{{ currentFofu }}</strong></span>
+      <span style="font-weight: 500;">Límite: {{ maxFofu }}</span>
+    </div>
+    <ion-progress-bar [value]="currentFofu / maxFofu"
+                      [color]="currentFofu > maxFofu ? 'danger' : 'secondary'"
+                      style="margin-top: 6px; height: 8px; border-radius: 4px;">
+    </ion-progress-bar>
+  </div>
   <div class="progress-link-banner ion-padding-horizontal">
     <span>¿Reprobaste alguna asignatura y no aparece? Modifica tu progreso
       <a routerLink="/progreso">apretando aquí</a>.
     </span>
   </div>
   <ion-segment [(ngModel)]="filter" value="all" class="filters" mode="md">
-    
+
     <ion-segment-button value="all">
       <ion-label>Todos</ion-label>
     </ion-segment-button>
     <ion-segment-button value="obligatorio">
-      <ion-label>Obligatorias <small *ngIf="allCourses.length">({{ counts.obligatorio }})</small></ion-label> 
+      <ion-label>Obligatorias <small *ngIf="allCourses.length">({{ counts.obligatorio }})</small></ion-label>
     </ion-segment-button>
     <ion-segment-button value="fofu">
       <ion-label>FoFu <small *ngIf="allCourses.length">({{ counts.fofu }})</small></ion-label>
@@ -28,11 +49,11 @@
   </ion-segment>
 
   <div class="catalog-shell">
-   
-     <div class="catalog-slab">
+
+    <div class="catalog-slab">
       <div class="h-scroll" role="region" aria-label="Catálogo desplazable" tabindex="0">
         <div class="table-width">
-          
+
           <div class="table-head" role="row">
             <div class="th" role="columnheader">Asignatura</div>
             <div class="th" role="columnheader">Tipo</div>
@@ -43,20 +64,18 @@
             <div class="th th-right" role="columnheader">Aprobación</div>
           </div>
           <ion-spinner name="crescent" *ngIf="loading" style="display:block; margin:12px auto;"></ion-spinner>
-          
-         
+
+
           <ion-list lines="none" class="course-list">
             <ion-item class="course-card" detail="false"
                       *ngFor="let c of viewCourses; trackBy: trackByCode">
               <div class="row" role="row">
                 <div class="cell asignatura" role="cell">
-                  
-                  
+
                   <ion-badge color="warning" *ngIf="c.estado === 'reprobada'" class="reprobada-badge">
                     <ion-icon name="warning-outline"></ion-icon>
                     Reprobada
                   </ion-badge>
-                 
 
                   <div class="code">{{ c.code }}</div>
                   <div class="name">{{ c.name }}</div>
@@ -72,11 +91,9 @@
 
                 <div class="cell sede" role="cell">{{ c.campus }}</div>
 
-                
                 <div class="cell aprobacion th-right" role="cell">
                   <b>{{ c.approval }}%</b>
 
-                  
                   <ng-container *ngIf="isAdded(c.code); else addBtn">
                     <ion-button fill="clear" class="add-btn" color="danger"
                                 aria-label="Quitar {{ c.code }}"
@@ -85,7 +102,6 @@
                     </ion-button>
                   </ng-container>
 
-                  
                   <ng-template #addBtn>
                     <ion-button fill="clear" class="add-btn"
                                 aria-label="Agregar {{ c.code }}"
@@ -100,7 +116,7 @@
         </div>
       </div>
 
-      <div class="dots" role="presentation" aria-hidden="true">• • •</div>
+      <div class="dots" role="presentation"></div>
     </div>
   </div>
 </ion-content>

@@ -2,7 +2,7 @@
 const { verifyAccessToken } = require('../utils/jwt');
 
 /**
- * Verifica JWT y adjunta req.user = { id, email, rol }
+ * Verifica JWT y adjunta req.user = { id, email, rol, ira }
  */
 exports.auth = (req, res, next) => {
   try {
@@ -12,7 +12,12 @@ exports.auth = (req, res, next) => {
       return res.status(401).json({ error: { message: 'Token requerido', code: 401 }});
     }
     const payload = verifyAccessToken(token);
-    req.user = { id: payload.sub, email: payload.email, rol: payload.rol };
+
+    // --- MODIFICACIÓN AQUÍ ---
+    // Añadimos 'ira' al objeto req.user para que esté disponible en todos los controladores
+    req.user = { id: payload.sub, email: payload.email, rol: payload.rol, ira: payload.ira };
+    // --- FIN DE LA MODIFICACIÓN ---
+
     next();
   } catch (err) {
     return res.status(401).json({ error: { message: 'Token inválido o expirado', code: 401 }});

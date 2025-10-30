@@ -1,19 +1,19 @@
 // src/controllers/users.controller.js
 'use strict';
 
-// --- AÑADIDO: Importar Op y los modelos necesarios ---
 const { Op } = require('sequelize');
 const { Usuario, RefreshToken, Asignatura, ProgresoUsuario } = require('../models'); 
-// --- FIN DE LO AÑADIDO ---
 const bcrypt = require('bcryptjs');
 const { ok, fail } = require('../utils/responses');
 
 // ============== Admin ==============
 
+// ... (las funciones list, getOne, create, update, remove no cambian para esta tarea) ...
 exports.list = async (_req, res, next) => {
   try {
     const data = await Usuario.findAll({
-      attributes: ['id','rut','nombre','email','rol','carrera','periodo_malla','createdAt','updatedAt'], // Incluye nuevos campos
+      // --- MODIFICADO: Añadimos 'ira' a la lista ---
+      attributes: ['id','rut','nombre','email','rol','carrera','periodo_malla','ira','createdAt','updatedAt'], 
       order: [['id','ASC']]
     });
     return ok(res, data);
@@ -23,7 +23,8 @@ exports.list = async (_req, res, next) => {
 exports.getOne = async (req, res, next) => {
   try {
     const user = await Usuario.findByPk(req.params.id, {
-      attributes: ['id','rut','nombre','email','rol','carrera','periodo_malla','createdAt','updatedAt'] // Incluye nuevos campos
+      // --- MODIFICADO: Añadimos 'ira' a la lista ---
+      attributes: ['id','rut','nombre','email','rol','carrera','periodo_malla','ira','createdAt','updatedAt']
     });
     return user ? ok(res, user) : fail(res, 'Usuario no encontrado', 404);
   } catch (err) { next(err); }
@@ -31,15 +32,19 @@ exports.getOne = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   try {
-    // Incluye nuevos campos aquí también por consistencia
-    const { rut, nombre, email, password, rol = 'estudiante', carrera, periodo_malla } = req.body;
+    // --- MODIFICADO: Añadimos 'ira' ---
+    const { rut, nombre, email, password, rol = 'estudiante', carrera, periodo_malla, ira } = req.body;
     
     if (!rut || !nombre || !email || !password) {
       return fail(res, 'rut, nombre, email y password son obligatorios', 400);
     }
-    // Validación extra si es estudiante
-    if (rol === 'estudiante' && (!carrera || periodo_malla === undefined)) {
-       return fail(res, 'carrera y periodo_malla son obligatorios para estudiantes', 400);
+    // --- MODIFICADO: Validación extra (ira) ---
+    if (rol === 'estudiante' && (!carrera || periodo_malla === undefined || !ira)) {
+       return fail(res, 'carrera, periodo_malla e ira son obligatorios para estudiantes', 400);
+    }
+    // --- AÑADIDO: Validación de valor de IRA ---
+    if (ira && !['bajo', 'medio', 'alto'].includes(ira)) {
+      return fail(res, "El campo 'ira' debe ser 'bajo', 'medio' o 'alto'", 400);
     }
 
     const password_hash = await bcrypt.hash(password, 10);
@@ -50,27 +55,25 @@ exports.create = async (req, res, next) => {
       password_hash, 
       rol,
       carrera: rol === 'estudiante' ? carrera : null,
-      periodo_malla: rol === 'estudiante' ? parseInt(periodo_malla, 10) || null : null
+      periodo_malla: rol === 'estudiante' ? parseInt(periodo_malla, 10) || null : null,
+      ira: rol === 'estudiante' ? ira : 'bajo' // --- AÑADIDO ---
     });
 
-    // --- ¡¡LÓGICA DE AUTOCOMPLETAR (copiada de auth.controller)!! ---
+    // --- Lógica de autocompletar (sin cambios) ---
     if (user.rol === 'estudiante' && user.periodo_malla && user.periodo_malla > 1) {
       try {
-        // 1. Buscar asignaturas obligatorias de semestres anteriores
         const asignaturasAnteriores = await Asignatura.findAll({
           where: {
             periodo_malla: { [Op.lt]: user.periodo_malla },
-            tipo: 'obligatoria' // Corregido
+            tipo: 'obligatoria'
           },
           attributes: ['sigla'] 
         });
-        // 2. Preparar los datos para la inserción masiva
         const progresosParaCrear = asignaturasAnteriores.map(asig => ({
           usuario_id: user.id,
           asignatura_sigla: asig.sigla,
           estado: 'aprobada' 
         }));
-        // 3. Insertar todos los registros de progreso de una vez
         if (progresosParaCrear.length > 0) {
           await ProgresoUsuario.bulkCreate(progresosParaCrear, {
             ignoreDuplicates: true 
@@ -80,10 +83,10 @@ exports.create = async (req, res, next) => {
         console.error('Error al autocompletar el progreso durante la creación (admin):', fillError);
       }
     }
-    // --- FIN DE LA LÓGICA DE AUTOCOMPLETAR ---
+    // --- FIN LÓGICA AUTOCOMPLETAR ---
 
-    // Devuelve los nuevos campos
-    return ok(res, { id: user.id, rut: user.rut, nombre: user.nombre, email: user.email, rol: user.rol, carrera: user.carrera, periodo_malla: user.periodo_malla }, 201);
+    // --- MODIFICADO: Devolvemos 'ira' ---
+    return ok(res, { id: user.id, rut: user.rut, nombre: user.nombre, email: user.email, rol: user.rol, carrera: user.carrera, periodo_malla: user.periodo_malla, ira: user.ira }, 201);
   } catch (err) {
     if (err?.name === 'SequelizeUniqueConstraintError') {
       return fail(res, 'Email o RUT ya existe', 409);
@@ -97,71 +100,76 @@ exports.update = async (req, res, next) => {
     const user = await Usuario.findByPk(req.params.id);
     if (!user) return fail(res, 'Usuario no encontrado', 404);
 
-    // Incluye nuevos campos aquí
-    const { rut, nombre, email, password, rol, carrera, periodo_malla } = req.body;
+    // --- MODIFICADO: Añadimos 'ira' ---
+    const { rut, nombre, email, password, rol, carrera, periodo_malla, ira } = req.body;
 
     const oldEmail = user.email;
     const oldRol = user.rol;
-    // --- AÑADIDO: Guardar el periodo_malla anterior ---
     const oldPeriodoMalla = user.periodo_malla; 
+    const oldIra = user.ira; // --- AÑADIDO ---
 
     if (rut !== undefined)      user.rut = rut;
     if (nombre !== undefined)   user.nombre = nombre;
     if (email !== undefined)    user.email = email;
     if (rol !== undefined)      user.rol = rol;
-    // Incluye nuevos campos en la actualización
     if (carrera !== undefined)  user.carrera = carrera;
-    // --- MODIFICADO: Asegurarse de convertir a número ---
     if (periodo_malla !== undefined) user.periodo_malla = parseInt(periodo_malla, 10) || null;
     
+    // --- AÑADIDO: Actualización de IRA (con validación) ---
+    if (ira !== undefined) {
+      if (!['bajo', 'medio', 'alto'].includes(ira)) {
+        return fail(res, "El campo 'ira' debe ser 'bajo', 'medio' o 'alto'", 400);
+      }
+      user.ira = ira;
+    }
+
     if (password)               user.password_hash = await bcrypt.hash(password, 10);
 
-    await user.save(); // user.periodo_malla AHORA es el nuevo valor
+    await user.save();
 
-    // --- ¡¡NUEVA LÓGICA DE AUTOCOMPLETAR AL ACTUALIZAR!! ---
-    // Solo si es estudiante, el periodo_malla cambió y es mayor que el anterior
+    // --- Lógica de autocompletar (sin cambios) ---
     const nuevoPeriodo = user.periodo_malla;
     if (user.rol === 'estudiante' && 
-        periodo_malla !== undefined && // <-- el periodo_malla del req.body
-        nuevoPeriodo > (oldPeriodoMalla || 0)) { // Compara nuevo (4) > anterior (2 o null->0)
+        periodo_malla !== undefined && 
+        nuevoPeriodo > (oldPeriodoMalla || 0)) {
       try {
-        // 1. Buscar asignaturas obligatorias entre el semestre anterior y el nuevo
         const asignaturasIntermedias = await Asignatura.findAll({
           where: {
             periodo_malla: {
-              [Op.gte]: oldPeriodoMalla || 1, // <-- ARREGLO: Si era null, parte desde 1
-              [Op.lt]: nuevoPeriodo           // Menor que el nuevo
+              [Op.gte]: oldPeriodoMalla || 1, 
+              [Op.lt]: nuevoPeriodo
             },
-            tipo: 'obligatoria' // Corregido
+            tipo: 'obligatoria'
           },
           attributes: ['sigla']
         });
-        // 2. Preparar los datos
         const progresosParaCrear = asignaturasIntermedias.map(asig => ({
           usuario_id: user.id,
           asignatura_sigla: asig.sigla,
           estado: 'aprobada'
         }));
-        // 3. Insertar (ignorando duplicados por si ya estaban marcadas)
         if (progresosParaCrear.length > 0) {
           await ProgresoUsuario.bulkCreate(progresosParaCrear, {
-            ignoreDuplicates: true // No sobrescribe si ya estaba 'reprobada'
+            ignoreDuplicates: true
           });
         }
       } catch (fillError) {
         console.error('Error al autocompletar el progreso durante la actualización (admin):', fillError);
       }
     }
-    // --- FIN DE LA LÓGICA DE AUTOCOMPLETAR ---
+    // --- FIN LÓGICA AUTOCOMPLETAR ---
 
-    if ((email !== undefined && email !== oldEmail) || (rol !== undefined && rol !== oldRol)) {
+    // --- MODIFICADO: Revocar tokens si cambia email, rol O IRA ---
+    if ((email !== undefined && email !== oldEmail) || 
+        (rol !== undefined && rol !== oldRol) ||
+        (ira !== undefined && ira !== oldIra)) {
       await RefreshToken.update(
         { revoked_at: new Date() },
         { where: { user_id: user.id, revoked_at: null } }
       );
     }
-    // Devuelve los nuevos campos
-    return ok(res, { id: user.id, rut: user.rut, nombre: user.nombre, email: user.email, rol: user.rol, carrera: user.carrera, periodo_malla: user.periodo_malla });
+    // --- MODIFICADO: Devolvemos 'ira' ---
+    return ok(res, { id: user.id, rut: user.rut, nombre: user.nombre, email: user.email, rol: user.rol, carrera: user.carrera, periodo_malla: user.periodo_malla, ira: user.ira });
   } catch (err) {
     if (err?.name === 'SequelizeUniqueConstraintError') {
       return fail(res, 'Email o RUT ya existe', 409);
@@ -171,6 +179,7 @@ exports.update = async (req, res, next) => {
 };
 
 exports.remove = async (req, res, next) => {
+  // ... (sin cambios) ...
   try {
     const n = await Usuario.destroy({ where: { id: req.params.id } });
     return n ? ok(res, null, 204) : fail(res, 'Usuario no encontrado', 404);
@@ -181,94 +190,98 @@ exports.remove = async (req, res, next) => {
 
 exports.me = async (req, res, next) => {
   try {
+    // --- MODIFICADO: Añadimos 'ira' ---
     const user = await Usuario.findByPk(req.user.id, {
-      // Incluye nuevos campos
-      attributes: ['id','rut','nombre','email','rol','carrera','periodo_malla','createdAt','updatedAt']
+      attributes: ['id','rut','nombre','email','rol','carrera','periodo_malla','ira','createdAt','updatedAt']
     });
     return user ? ok(res, user) : fail(res, 'Usuario no encontrado', 404);
   } catch (err) { next(err); }
 };
 
 // ==================================================================
-// ================== FUNCIÓN CORREGIDA (updateSelf) ================
+// ================== FUNCIÓN MODIFICADA (updateSelf) ===============
 // ==================================================================
 exports.updateSelf = async (req, res, next) => {
   try {
     const user = await Usuario.findByPk(req.user.id);
     if (!user) return fail(res, 'Usuario no encontrado', 404);
 
-    const { nombre, email, password, carrera, periodo_malla } = req.body;
+    // --- MODIFICADO: Añadimos 'ira' ---
+    const { nombre, email, password, carrera, periodo_malla, ira } = req.body;
     const oldEmail = user.email;
-    // --- AÑADIDO: Guardar el periodo_malla anterior ---
-    const oldPeriodoMalla = user.periodo_malla; // Podría ser 2, o null
+    const oldPeriodoMalla = user.periodo_malla;
+    const oldIra = user.ira; // --- AÑADIDO ---
 
-    // aquí NO se permite tocar rol ni rut
     if (nombre !== undefined)   user.nombre = nombre;
     if (email !== undefined)    user.email  = email;
     if (carrera !== undefined)  user.carrera = carrera;
-    // --- MODIFICADO: Asegurarse de convertir a número ---
     if (periodo_malla !== undefined) user.periodo_malla = parseInt(periodo_malla, 10) || null;
     
+    // --- AÑADIDO: Actualización de IRA (con validación) ---
+    if (ira !== undefined) {
+      if (!['bajo', 'medio', 'alto'].includes(ira)) {
+        return fail(res, "El campo 'ira' debe ser 'bajo', 'medio' o 'alto'", 400);
+      }
+      user.ira = ira;
+    }
+
     if (password)               user.password_hash = await bcrypt.hash(password, 10);
 
-    await user.save(); // user.periodo_malla AHORA es el nuevo valor (ej: 4)
+    await user.save();
 
-    // --- ¡¡NUEVA LÓGICA DE AUTOCOMPLETAR AL ACTUALIZAR PERFIL!! ---
-    // Solo si es estudiante, el periodo_malla cambió y es mayor que el anterior
+    // --- Lógica de autocompletar (sin cambios) ---
     const nuevoPeriodo = user.periodo_malla;
     if (user.rol === 'estudiante' && 
-        periodo_malla !== undefined && // <-- el periodo_malla del req.body
-        nuevoPeriodo > (oldPeriodoMalla || 0)) { // Compara nuevo (4) > anterior (null->0)
+        periodo_malla !== undefined && 
+        nuevoPeriodo > (oldPeriodoMalla || 0)) { 
       try {
-        // 1. Buscar asignaturas obligatorias entre el semestre anterior y el nuevo
         const asignaturasIntermedias = await Asignatura.findAll({
           where: {
             periodo_malla: {
-              [Op.gte]: oldPeriodoMalla || 1, // <-- ARREGLO: Si era null, parte desde 1
-              [Op.lt]: nuevoPeriodo           // Menor que el nuevo (ej: < 4)
+              [Op.gte]: oldPeriodoMalla || 1, 
+              [Op.lt]: nuevoPeriodo
             },
-            // --- CORRECCIÓN AQUÍ ---
-            tipo: 'obligatoria' // Debe ser 'obligatoria' (singular)
-            // --- FIN CORRECCIÓN ---
+            tipo: 'obligatoria'
           },
           attributes: ['sigla']
         });
         
-        // 2. Preparar los datos
         const progresosParaCrear = asignaturasIntermedias.map(asig => ({
           usuario_id: user.id,
           asignatura_sigla: asig.sigla,
           estado: 'aprobada'
         }));
 
-        // 3. Insertar (ignorando duplicados por si ya estaban marcadas)
         if (progresosParaCrear.length > 0) {
           await ProgresoUsuario.bulkCreate(progresosParaCrear, {
-            ignoreDuplicates: true // No sobrescribe si ya estaba 'reprobada'
+            ignoreDuplicates: true
           });
         }
       } catch (fillError) {
         console.error('Error al autocompletar el progreso durante la actualización del perfil:', fillError);
       }
     }
-    // --- FIN DE LA LÓGICA DE AUTOCOMPLETAR ---
+    // --- FIN LÓGICA AUTOCOMPLETAR ---
 
-    if (email !== undefined && email !== oldEmail) {
+    // --- MODIFICADO: Revocar tokens si cambia email O IRA ---
+    if ((email !== undefined && email !== oldEmail) || (ira !== undefined && ira !== oldIra)) {
       await RefreshToken.update(
         { revoked_at: new Date() },
         { where: { user_id: user.id, revoked_at: null } }
       );
     }
     
+    // --- MODIFICADO: Devolvemos 'ira' ---
     return ok(res, { 
-      user: { // Devuelve dentro de un objeto 'user' como espera el frontend
+      user: {
         id: user.id, 
         rut: user.rut, 
         nombre: user.nombre, 
         email: user.email, 
         rol: user.rol, 
         carrera: user.carrera, 
-        periodo_malla: user.periodo_malla 
+        periodo_malla: user.periodo_malla,
+        ira: user.ira // <-- AÑADIDO
       }
     });
   } catch (err) {
@@ -279,5 +292,5 @@ exports.updateSelf = async (req, res, next) => {
   }
 };
 // ==================================================================
-// ================== FIN DE LA CORRECCIÓN ==========================
+// ================== FIN DE LA MODIFICACIÓN ========================
 // ==================================================================

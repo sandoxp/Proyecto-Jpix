@@ -1,12 +1,12 @@
-import { Component, OnInit } from '@angular/core'; // 👈 Se añade OnInit
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NavController, ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { AuthService } from 'src/app/auth'; // 👈 SE IMPORTA AUTHSERVICE
-import { HttpErrorResponse } from '@angular/common/http'; // 👈 Se importa HttpErrorResponse
-import { firstValueFrom } from 'rxjs'; // 👈 Se importa firstValueFrom
+import { HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 
-// Esta interfaz debe coincidir con los datos del usuario en el localStorage
+// --- MODIFICADO: Añadido 'ira' ---
 interface UserProfile {
   id: number;
   nombre: string;
@@ -15,6 +15,7 @@ interface UserProfile {
   carrera: string | null;
   periodo_malla: number | null;
   rol: 'estudiante' | 'admin';
+  ira: 'bajo' | 'medio' | 'alto'; // <-- AÑADIDO
 }
 
 @Component({
@@ -23,76 +24,65 @@ interface UserProfile {
   styleUrls: ['./perfil.page.scss'],
   standalone: false,
 })
-export class PerfilPage implements OnInit { // 👈 Se implementa OnInit
+export class PerfilPage implements OnInit {
   
-  // El perfil se cargará desde localStorage, no estará "por default"
   profile: UserProfile | null = null; 
-
   editOpen = false;
   form: FormGroup;
-  isSaving = false; // Para deshabilitar el botón al guardar
+  isSaving = false;
 
   constructor(
     private fb: FormBuilder,
     private nav: NavController,
     private toastCtrl: ToastController,
     private router: Router,
-    private auth: AuthService // 👈 SE INYECTA AUTHSERVICE
+    private auth: AuthService
   ) {
-    // Inicializamos el formulario con los campos que SÍ existen
-    // 'celular' y 'anioIngreso' se quitan porque no están en tu modelo de BD
+    // --- MODIFICADO: Añadido 'ira' al formulario ---
     this.form = this.fb.group({
       nombre: ['', [Validators.required, Validators.minLength(3)]],
-      rut: [{ value: '', disabled: true }, [Validators.required]], // RUT no se puede editar
+      rut: [{ value: '', disabled: true }, [Validators.required]],
       carrera: ['', [Validators.required]],
       periodo_malla: [null, [Validators.required, Validators.min(1)]],
       email: ['', [Validators.required, Validators.email]],
+      ira: [null, [Validators.required]], // <-- AÑADIDO
     });
   }
 
   ngOnInit() {
-    // Esta función se ejecuta al cargar la página
     this.loadProfileData();
   }
 
-  // Carga los datos del usuario desde localStorage
   loadProfileData() {
-    const userString = localStorage.getItem('user'); 
+    // --- MODIFICADO: Usamos el nuevo método del AuthService ---
+    this.profile = this.auth.getUser() as UserProfile | null;
 
-    if (!userString) {
-      // Si no hay usuario, redirigir al login
+    if (!this.profile) {
       this.showToast('Sesión no encontrada, por favor inicia sesión', 'danger');
       this.router.navigate(['/login']);
       return;
     }
-
-    try {
-      this.profile = JSON.parse(userString) as UserProfile;
-      
-      // Rellenamos el formulario con los datos reales cargados
-      this.form.reset({
-        nombre: this.profile.nombre,
-        rut: this.profile.rut,
-        carrera: this.profile.carrera,
-        periodo_malla: this.profile.periodo_malla,
-        email: this.profile.email,
-      });
-
-    } catch (e) {
-      console.error('Error parseando usuario de localStorage', e);
-      this.auth.logout();
-      this.router.navigate(['/login']);
-    }
+    
+    // Rellenamos el formulario con los datos reales cargados
+    this.form.reset({
+      nombre: this.profile.nombre,
+      rut: this.profile.rut,
+      carrera: this.profile.carrera,
+      periodo_malla: this.profile.periodo_malla,
+      email: this.profile.email,
+      ira: this.profile.ira, // <-- AÑADIDO
+    });
   }
 
   openEdit() {
-    // Reseteamos el formulario al estado actual (por si canceló antes)
+    // Reseteamos el formulario al estado actual
     this.form.reset({
       nombre: this.profile?.nombre,
       rut: this.profile?.rut,
       carrera: this.profile?.carrera,
       periodo_malla: this.profile?.periodo_malla,
       email: this.profile?.email,
+      ira: this.profile?.ira, // <-- AÑADIDO
     });
     this.editOpen = true;
   }
@@ -106,28 +96,35 @@ export class PerfilPage implements OnInit { // 👈 Se implementa OnInit
     if (this.form.invalid || !this.profile) return;
     this.isSaving = true;
 
-    // Solo enviamos los campos que se pueden cambiar
-    const { nombre, email, carrera, periodo_malla } = this.form.value;
-    const body = { nombre, email, carrera, periodo_malla };
+    // --- MODIFICADO: Añadimos 'ira' al body ---
+    const { nombre, email, carrera, periodo_malla, ira } = this.form.value;
+    const body = { nombre, email, carrera, periodo_malla, ira };
 
     try {
-      // 1. Llamamos al método 'updateSelf' que está en auth.ts
-      //    Este método llama al endpoint PUT /api/v1/usuarios/me
+      // 1. Llamamos a 'updateSelf'
       const response = await firstValueFrom(this.auth.updateSelf(body));
       
-      // 2. Actualizamos el perfil local con la respuesta del backend
+      // 2. Actualizamos el perfil local con la respuesta
+      // (El auth.service ya actualizó el localStorage)
       this.profile = response.data.user; 
       
-      // 3. (IMPORTANTE) auth.updateSelf ya actualizó el localStorage
-
       this.showToast('Perfil actualizado exitosamente', 'success');
       this.closeEdit();
+
+      // --- AÑADIDO: Recargar la página ---
+      // Forzamos un reload para que el resto de la app (catalogo)
+      // consulte el nuevo estado del usuario.
+      // Si el token fue invalidado, esto redirigirá al login.
+      // Si no, simplemente refrescará la app con el nuevo localStorage.
+      window.location.reload();
 
     } catch (err: any) {
       const error = err as HttpErrorResponse;
       let message = 'Error desconocido al guardar';
       if (error?.status === 409) {
         message = 'El email ya está en uso por otra cuenta';
+      } else if (error?.status === 400) {
+        message = error.error?.error?.message || 'Datos inválidos';
       }
       this.showToast(message, 'danger');
     } finally {
@@ -135,7 +132,6 @@ export class PerfilPage implements OnInit { // 👈 Se implementa OnInit
     }
   }
 
-  // Función de ayuda para mostrar mensajes
   async showToast(message: string, color: string = 'primary') {
     const t = await this.toastCtrl.create({ message, duration: 2000, color, position: 'bottom' });
     await t.present();

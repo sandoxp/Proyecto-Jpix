@@ -6,6 +6,19 @@ import { environment } from 'src/environments/environment';
 type LoginPayload = { email?: string; rut?: string; password: string; role?: string };
 type Pair = { data: { token: string; refreshToken: string; user?: any } };
 
+// --- INTERFAZ AÑADIDA PARA EL OBJETO USER ---
+export interface UserData {
+  id: number;
+  nombre: string;
+  email: string;
+  rut: string;
+  rol: 'admin' | 'estudiante';
+  carrera: string;
+  periodo_malla: number;
+  ira: 'bajo' | 'medio' | 'alto';
+}
+// ------------------------------------------
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(!!localStorage.getItem('token'));
@@ -18,7 +31,7 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
-  // REGISTRO: (Ya incluye los campos nuevos, está correcto)
+  // REGISTRO: (Modificado para incluir IRA)
   register(body: { 
     rut: string; 
     nombre: string; 
@@ -27,6 +40,7 @@ export class AuthService {
     rol?: 'admin'|'estudiante';
     carrera?: string;
     periodo_malla?: number | null;
+    ira?: string; // <-- AÑADIDO
   }): Observable<Pair> {
     return this.http.post<Pair>(`${this.base}/auth/register`, body);
   }
@@ -37,14 +51,13 @@ export class AuthService {
         localStorage.setItem('token', data.token);
         localStorage.setItem('refreshToken', data.refreshToken);
         if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('user', JSON.stringify(data.user)); // <-- Esto ya guarda el 'ira'
           const role = data.user.rol || 'estudiante';
           localStorage.setItem('role', role);
           this.roleSubject.next(role);
         }
         this.isAuthenticatedSubject.next(true);
       })
-
     );
   }
 
@@ -61,7 +74,7 @@ export class AuthService {
   me() { return this.http.get<{ data: any }>(`${this.base}/auth/me`); }
 
   // ==================================================================
-  // ================== 👇 FUNCIÓN AÑADIDA 👇 =======================
+  // ================== 👇 FUNCIÓN MODIFICADA 👇 ======================
   // ==================================================================
   /**
    * Actualiza el perfil del propio usuario logueado
@@ -72,19 +85,38 @@ export class AuthService {
     email?: string; 
     carrera?: string;
     periodo_malla?: number;
+    ira?: 'bajo' | 'medio' | 'alto'; // <-- AÑADIDO
   }): Observable<Pair> { 
-    // Tu backend usa el endpoint PUT /usuarios/me
     return this.http.put<Pair>(`${this.base}/usuarios/me`, body).pipe(
       tap(({ data }) => {
         // Actualiza el 'user' en localStorage con la respuesta
         if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('user', JSON.stringify(data.user)); // <-- Esto actualiza el 'ira' en localStorage
           const role = data.user.rol || 'estudiante';
           localStorage.setItem('role', role);
           this.roleSubject.next(role);
         }
       })
     );
+  }
+  // ==================================================================
+  // ================== 👆 FIN DE FUNCIÓN MODIFICADA 👆 ================
+  // ==================================================================
+
+  // ==================================================================
+  // ================== 👇 FUNCIÓN AÑADIDA 👇 =======================
+  // ==================================================================
+  /**
+   * Obtiene el objeto del usuario parseado desde localStorage
+   */
+  public getUser(): UserData | null {
+    try {
+      const userStr = localStorage.getItem('user');
+      return userStr ? JSON.parse(userStr) : null;
+    } catch (e) {
+      console.error('Error parsing user from localStorage', e);
+      return null;
+    }
   }
   // ==================================================================
   // ================== 👆 FIN DE FUNCIÓN AÑADIDA 👆 ==================

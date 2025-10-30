@@ -41,6 +41,14 @@
   </ion-item>
 
   <ion-item>
+    <ion-label position="floating">Índice de Riesgo Académico (IRA)</ion-label>
+    <ion-select [(ngModel)]="ira" name="ira" placeholder="Selecciona tu nivel de riesgo" required>
+      <ion-select-option value="bajo">Bajo (Sin riesgo)</ion-select-option>
+      <ion-select-option value="medio">Medio (Riesgo medio)</ion-select-option>
+      <ion-select-option value="alto">Alto (Riesgo alto)</ion-select-option>
+    </ion-select>
+  </ion-item>
+  <ion-item>
     <ion-label position="floating">Documento</ion-label>
     <ion-select [(ngModel)]="documentType" name="documentType" placeholder="Selecciona documento">
       <ion-select-option value="rut">Rut</ion-select-option>
@@ -91,5 +99,9 @@
   <ion-button expand="full" (click)="register()" color="secondary" [disabled]="loading">
     <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
     <span *ngIf="!loading">Guardar</span>
+  </ion-button>
+
+  <ion-button expand="full" fill="outline" color="medium" [routerLink]="'/login'" class="ion-margin-top">
+    Cancelar
   </ion-button>
 </ion-content>
