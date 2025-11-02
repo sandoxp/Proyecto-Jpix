@@ -1,6 +1,6 @@
 # **JPIX: Tu asistente virtual que te ayuda a organizar tu vida universitaria**
 
-**Integrantes**: Isidora Gárate, Matíaas Pardo, Sebastián Sandoval y Joaquín Saldivia.
+**Integrantes**: Isidora Gárate, Matías Pardo, Sebastián Sandoval y Joaquín Saldivia.
 ## Propósito de JPIX
 JPIX es una plataforma web y móvil orientada a optimizar la gestión académica de los estudiantes, permitiendo consultar, organizar y administrar de manera intuitiva asignaturas, horarios y requisitos de cada carrera.
 
