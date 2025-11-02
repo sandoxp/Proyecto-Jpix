@@ -21,6 +21,13 @@ En su fase actual, JPIX está enfocado principalmente en los estudiantes de Inge
 ## Estructura del Proyecto
 El repositorio de JPIX está organizado en dos carpetas principales, que separan el desarrollo del frontend y el backend, permitiendo una estructura más limpia, escalable y fácil de mantener y comprender.
 
+Cabe recalcar que cada carpeta contiene su respectivo "README" de las entregas parciales 1 y 2.
+
+**Entrega Parcial 1**: Jpix\README.md
+
+**Entrega Parcial 2**: Jpix-backend\README.md
+
+
 * **Jpix**: Corresponde al frontend del proyecto, desarrollado con Ionic y Angular. En esta carpeta se encuentran las vistas, componentes, servicios y módulos que conforman la interfaz de usuario.
 Desde aquí se gestiona la navegación, el consumo de la API REST y la interacción directa con los estudiantes y/o administradores.
 
