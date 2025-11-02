@@ -171,6 +171,8 @@ Las siguientes pruebas permitieron verificar tanto las rutas públicas como las 
 * **GET /usuarios2**: Ruta de prueba adicional para consulta de usuarios.
 * **GET /usuarioYo**: Devuelve la información del usuario autenticado.
 
+**IMPORTANTE**: En el archivo "PruebaInsomnia" se encuentran todos los resultados obtenidos al momento de ejecutar los métodos HTTP mencionados anteriormente. 
+
 ## 9. Conclusión
 El desarrollo del backend de JPIX representó un avance significativo en la estructura, logrando establecer una API REST estable y segura, funcional, capaz de conectarse con una base de datos relacional y comunicarse eficazmente con el frontend.
 

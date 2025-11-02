@@ -1,0 +1,260 @@
+type: collection.insomnia.rest/5.0
+name: JPIX API
+meta:
+  id: wrk_1dad743c8eb04ecdb4c75560b3fe8ff5
+  created: 1760405460637
+  modified: 1760405460637
+  description: ""
+collection:
+  - url: http://localhost:3000/api/v1/health
+    name: GET /health
+    meta:
+      id: req_e4e8cfeac1b84bbd87fa2f1c34e7a57b
+      created: 1760405492398
+      modified: 1760405623641
+      isPrivate: false
+      description: ""
+      sortKey: -1760405492398
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:3000/api/v1/usuarios
+    name: GET /usuarios
+    meta:
+      id: req_d75e8a7deef24e389e490c02233afeff
+      created: 1760405640420
+      modified: 1760405707967
+      isPrivate: false
+      description: ""
+      sortKey: -1760405640420
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:3000/api/v1/usuarios
+    name: POST /usuarios
+    meta:
+      id: req_a66274cad27c4a409d13489229f0e3ae
+      created: 1760405715486
+      modified: 1760405922773
+      isPrivate: false
+      description: ""
+      sortKey: -1760405715486
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+          "rut": "22222222-3",
+          "nombre": "Usuario Demo 3",
+          "email": "demo3@jpix.cl",
+          "password": "secreto123",
+          "rol": "estudiante"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.6.1
+        id: pair_a4928dac36aa4b8f9a33e26f9f8cdecf
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:3000/api/v1/usuarios/4
+    name: GET /usuarios/:id
+    meta:
+      id: req_bae477439a234d819e0b4fff82af317e
+      created: 1760405912573
+      modified: 1760406016126
+      isPrivate: false
+      description: ""
+      sortKey: -1760405912573
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:3000/api/v1/usuarios/4
+    name: PUT /usuarios/:id
+    meta:
+      id: req_cbe72bab9d5648bf9fe3b5bda0d17d03
+      created: 1760406019840
+      modified: 1760406126616
+      isPrivate: false
+      description: ""
+      sortKey: -1760406019840
+    method: PUT
+    body:
+      mimeType: application/json
+      text: '{ "nombre": "Usuario Demo (editado)" }'
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.6.1
+        id: pair_fc40eda16e4345169053a4ebb9f2dc26
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:3000/api/v1/usuarios/4
+    name: DELETE /usuarios
+    meta:
+      id: req_fe800bed6da64e45917330a3ef4793e8
+      created: 1760406132256
+      modified: 1760406172483
+      isPrivate: false
+      description: ""
+      sortKey: -1760406132256
+    method: DELETE
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:3000/api/v1/auth/login
+    name: POST /login
+    meta:
+      id: req_704a210b8c854bf6a304d87f32430acd
+      created: 1760832614236
+      modified: 1760832815924
+      isPrivate: false
+      description: ""
+      sortKey: -1760832614236
+    method: POST
+    body:
+      mimeType: application/json
+      text: |
+        { "email": "admin@jpix.cl", "password": "admin123" }
+    parameters:
+      - id: pair_44c995b7f92d4f7fbae18425308c73df
+        name: ""
+        value: ""
+        description: ""
+        disabled: false
+      - id: pair_c71c7492506a4c1eb40ce584ee068b8a
+        name: ""
+        value: ""
+        description: ""
+        disabled: false
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.6.1
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:3000/api/v1/usuarios
+    name: GET /usuarios2
+    meta:
+      id: req_3492f6fd3acc4fa68efc8e8b9b9a654b
+      created: 1760832800245
+      modified: 1760832987923
+      isPrivate: false
+      description: ""
+      sortKey: -1760832800245
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+        id: pair_901c6a72421e47e49e83e1bee95d94a0
+      - id: pair_167be0fdb0ff43b888a308affef63392
+        name: Authorization
+        value: Bearer
+          eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5AanBpeC5jbCIsInJvbCI6ImFkbWluIiwiaWF0IjoxNzYwODMyNzQ1LCJleHAiOjE3NjA4MzYzNDV9.uC9nu8KLLpKlbwwaUc1QUR-asCaQ-YNXLkvMPIVhi6I
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: http://localhost:3000/api/v1/auth/me
+    name: GET /usuarioYo
+    meta:
+      id: req_0704d679719741828a6b503d9f05a31e
+      created: 1760833005084
+      modified: 1760833069547
+      isPrivate: false
+      description: ""
+      sortKey: -1760833005084
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.6.1
+        id: pair_0b0ee6de6d2842d684321883cd4e4d84
+      - id: pair_4c750974e4714b8b94a068806c9dae71
+        name: Authorization
+        value: Bearer
+          eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImVtYWlsIjoiYWRtaW5AanBpeC5jbCIsInJvbCI6ImFkbWluIiwiaWF0IjoxNzYwODMyNzQ1LCJleHAiOjE3NjA4MzYzNDV9.uC9nu8KLLpKlbwwaUc1QUR-asCaQ-YNXLkvMPIVhi6I
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_d27aed6c3c041c02367339c7e453b141bc166326
+    created: 1760405460665
+    modified: 1760405460665
+environments:
+  name: Base Environment
+  meta:
+    id: env_d27aed6c3c041c02367339c7e453b141bc166326
+    created: 1760405460655
+    modified: 1760405460655
+    isPrivate: false
