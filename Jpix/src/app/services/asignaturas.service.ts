@@ -12,25 +12,43 @@ export interface Bloque {
   sede?: string; sala?: string; actividad?: 'CAT' | 'TAL' | 'AY';
 }
 export interface Seccion {
-  id: number; seccion: string; docente?: string; bloques?: Bloque[];
+  id: number; 
+  seccion: string; 
+  docente?: string; 
+  bloques?: Bloque[]; // Esta interfaz ya la teníamos
+  
+  // --- AÑADIDO: Campos del modelo seccion.js ---
+  asignatura_id: number; 
+  nombre?: string;
+  codigo_completo?: string;
 }
+
+// ===============================================
+// --- 👇 AQUÍ ESTÁ LA CORRECCIÓN 👇 ---
+// ===============================================
 export interface Asignatura {
-  sigla: string; nombre: string; creditos?: number;
+  id: number; // <-- LA PROPIEDAD QUE FALTABA
+  sigla: string; 
+  nombre: string; 
+  creditos?: number;
   tipo?: 'obligatoria' | 'fofu' | 'ingles' | 'optativa';
   semestralidad?: 'ANUAL' | 'SEMESTRAL';
   tasa_aprobacion?: number | null;
   tasa_aprobacion_pct?: string | null;
   secciones?: Seccion[];
   periodo_malla?: number | null;
-  // --- AÑADIDO: Estado de progreso del usuario ---
   estado?: 'pendiente' | 'aprobada' | 'reprobada' | 'cursando';
 }
+
+export type AsignaturaPayload = Omit<Asignatura, 'id' | 'secciones' | 'estado' | 'tasa_aprobacion_pct'>;
+
 
 @Injectable({ providedIn: 'root' })
 export class AsignaturasService {
   private base = `${environment.API_URL}/asignaturas`;
   constructor(private http: HttpClient) { }
 
+  // --- Métodos GET existentes ---
   list(): Observable<ApiResponse<Asignatura[]>> {
     return this.http.get<ApiResponse<Asignatura[]>>(this.base);
   }
@@ -41,5 +59,18 @@ export class AsignaturasService {
 
   getMiCatalogo(): Observable<ApiResponse<Asignatura[]>> {
     return this.http.get<ApiResponse<Asignatura[]>>(`${this.base}/mi-catalogo`);
+  }
+
+  // --- Métodos CRUD de Admin (Paso 1) ---
+  create(data: AsignaturaPayload): Observable<ApiResponse<Asignatura>> {
+    return this.http.post<ApiResponse<Asignatura>>(this.base, data);
+  }
+
+  update(sigla: string, data: Partial<AsignaturaPayload>): Observable<ApiResponse<Asignatura>> {
+    return this.http.put<ApiResponse<Asignatura>>(`${this.base}/${sigla}`, data);
+  }
+
+  remove(sigla: string): Observable<ApiResponse<{ message: string }>> {
+    return this.http.delete<ApiResponse<{ message: string }>>(`${this.base}/${sigla}`);
   }
 }

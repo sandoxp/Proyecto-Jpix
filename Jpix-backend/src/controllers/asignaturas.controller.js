@@ -1,12 +1,17 @@
-// --- MODIFICADO: Añadido 'Usuario' y 'ProgresoUsuario' ---
+'use strict';
+
 const { Asignatura, Seccion, BloqueHorario, sequelize, Usuario, ProgresoUsuario } = require('../models');
 const { ok, fail } = require('../utils/responses');
 const { Op } = require('sequelize');
 
+// ---
+// CORRECCIÓN 1: Se añaden 'id', 'tipo', 'periodo_malla'
+// Esto arregla el filtro del modal de secciones (Paso 2)
+// ---
 exports.list = async (_req, res) => {
   const data = await Asignatura.findAll({
     order: [['sigla', 'ASC']],
-    attributes: ['sigla', 'nombre', 'creditos']
+    attributes: ['id', 'sigla', 'nombre', 'creditos', 'tipo', 'periodo_malla']
   });
   return ok(res, data);
 };
@@ -23,20 +28,14 @@ exports.getOne = async (req, res) => {
   return data ? ok(res, data) : fail(res, 'No encontrada', 404);
 };
 
-// --- FUNCIÓN MODIFICADA DRÁSTICAMENTE ---
-/**
- * Obtiene el catálogo inteligente para el usuario autenticado.
- * - Muestra solo asignaturas pendientes o reprobadas por el usuario.
- * - Muestra siempre las FOFU.
- * - Ordena poniendo las reprobadas primero.
- * - Incluye secciones y bloques.
- */
+// ---
+// CORRECCIÓN 2: Se añaden 'attributes' al include de BloqueHorario
+// Esto arregla el catálogo del estudiante (Paso 4)
+// ---
 exports.getMiCatalogo = async (req, res, next) => {
   try {
     const usuarioId = req.user.id;
 
-    // 1. Obtener TODAS las asignaturas, incluyendo su estado de progreso
-    //    para el usuario actual (LEFT JOIN).
     const todasConProgreso = await Asignatura.findAll({
       include: [
         {
@@ -46,23 +45,32 @@ exports.getMiCatalogo = async (req, res, next) => {
           required: false, // LEFT JOIN
           attributes: ['estado']
         },
-        // Incluimos secciones y bloques directamente aquí
         {
           model: Seccion, 
           as: 'secciones',
-          include: [{ model: BloqueHorario, as: 'bloques' }]
+          include: [{ 
+            model: BloqueHorario, 
+            as: 'bloques',
+            // --- ¡ESTA ES LA CORRECCIÓN QUE FALTABA! ---
+            attributes: [
+              'dia', 
+              'clave_ini', // <-- Añadido
+              'clave_fin', // <-- Añadido
+              'hora_inicio', 
+              'hora_fin', 
+              'sede', 
+              'sala'
+            ]
+          }]
         }
       ],
-      // No filtramos aún, traemos todo para determinar el estado
     });
 
-    // 2. Procesar y FILTRAR la lista en memoria
     const catalogoFiltrado = todasConProgreso
       .map(a => {
         const asignaturaObj = a.get({ plain: true });
         let estadoFinal = 'pendiente'; // Default
         if (asignaturaObj.progreso && asignaturaObj.progreso.length > 0) {
-           // Corregimos 'cursando' si aún existe en BD
           estadoFinal = asignaturaObj.progreso[0].estado === 'cursando' ? 'pendiente' : asignaturaObj.progreso[0].estado;
         }
         asignaturaObj.estado = estadoFinal;
@@ -70,28 +78,17 @@ exports.getMiCatalogo = async (req, res, next) => {
         return asignaturaObj;
       })
       .filter(a => 
-         // Mostrar si está pendiente O reprobada O si es FOFU
-         a.estado === 'pendiente' || a.estado === 'reprobada' || a.tipo === 'fofu'
-         // (Las FOFU siempre aparecen, asumimos que no tienen progreso guardado)
-         // OJO: Si quieres que las FOFU también se puedan marcar como 'aprobada'
-         // y ocultarlas, quita '|| a.tipo === 'fofu'' y asegúrate
-         // de que se puedan marcar en la página de progreso.
+          a.estado === 'pendiente' || a.estado === 'reprobada' || a.tipo === 'fofu'
       );
 
-    // 3. ORDENAR: Reprobadas primero, luego por semestre, luego por sigla
     catalogoFiltrado.sort((a, b) => {
-      // Prioridad 1: Reprobadas van primero
       if (a.estado === 'reprobada' && b.estado !== 'reprobada') return -1;
       if (a.estado !== 'reprobada' && b.estado === 'reprobada') return 1;
-
-      // Prioridad 2: Ordenar por semestre (si ambas son reprobadas o ambas pendientes)
-      const semestreA = a.periodo_malla ?? Infinity; // FOFU al final
+      const semestreA = a.periodo_malla ?? Infinity;
       const semestreB = b.periodo_malla ?? Infinity;
       if (semestreA !== semestreB) {
         return semestreA - semestreB;
       }
-      
-      // Prioridad 3: Ordenar por sigla si tienen mismo estado y semestre
       return a.sigla.localeCompare(b.sigla);
     });
 
@@ -102,3 +99,63 @@ exports.getMiCatalogo = async (req, res, next) => {
   }
 };
 // --- FIN DE LA FUNCIÓN MODIFICADA ---
+
+
+// ===============================================
+// --- INICIO: NUEVAS FUNCIONES CRUD (EF 1) ---
+// ===============================================
+
+/**
+ * @api {post} /api/v1/asignaturas/
+ * @description Crear una nueva asignatura.
+ * @access Admin
+ */
+exports.create = async (req, res, next) => {
+  try {
+    const nuevaAsignatura = req.body;
+    if (nuevaAsignatura.sigla) {
+      nuevaAsignatura.sigla = nuevaAsignatura.sigla.toUpperCase();
+    }
+    const asignatura = await Asignatura.create(nuevaAsignatura);
+    return ok(res, asignatura, 201); 
+  } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      return fail(res, `La sigla '${req.body.sigla}' ya existe.`, 409); // 409 Conflict
+    }
+    if (error.name === 'SequelizeValidationError') {
+      return fail(res, error.message, 400); // 400 Bad Request
+    }
+    next(error);
+  }
+};
+
+/**
+ * @api {put} /api/v1/asignaturas/:sigla
+ * @description Actualizar una asignatura existente.
+ * @access Admin
+ */
+exports.update = async (req, res) => {
+  const sigla = (req.params.sigla || '').toUpperCase();
+  const datosUpdate = req.body;
+  const asignatura = await Asignatura.findOne({ where: { sigla } });
+  if (!asignatura) {
+    return fail(res, 'Asignatura no encontrada', 404);
+  }
+  await asignatura.update(datosUpdate);
+  return ok(res, asignatura);
+};
+
+/**
+ * @api {delete} /api/v1/asignaturas/:sigla
+ * @description Eliminar una asignatura.
+ * @access Admin
+ */
+exports.remove = async (req, res) => {
+  const sigla = (req.params.sigla || '').toUpperCase();
+  const asignatura = await Asignatura.findOne({ where: { sigla } });
+  if (!asignatura) {
+    return fail(res, 'Asignatura no encontrada', 404);
+  }
+  await asignatura.destroy();
+  return ok(res, { message: 'Asignatura eliminada correctamente' });
+};

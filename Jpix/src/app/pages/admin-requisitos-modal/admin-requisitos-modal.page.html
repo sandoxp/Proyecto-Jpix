@@ -1,0 +1,66 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Requisitos de {{ asignatura.sigla }}</ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="dismissModal()">Cerrar</ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadRequisitos()" [disabled]="loading">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <form [formGroup]="createForm" (ngSubmit)="saveCreate()" class="ion-padding-horizontal">
+    <ion-item>
+      <ion-label position="stacked">Añadir Requisito (Sigla)</ion-label>
+      <ion-input formControlName="requiere_sigla" placeholder="Ej: MAT100"></ion-input>
+      <ion-button type="submit" slot="end" [disabled]="createForm.invalid">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </form>
+
+  <ion-item-divider>
+    <ion-label>Requisitos Actuales</ion-label>
+  </ion-item-divider>
+
+  <ion-list *ngIf="!loading; else skel">
+    <ion-item-sliding *ngFor="let req of requisitos; trackBy: trackById">
+      
+      <ion-item>
+        <ion-label>
+          <h2>{{ req.requerida.sigla }}</h2>
+          <p>{{ req.requerida.nombre }}</p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="danger" (click)="remove(req)">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+
+    <ion-item *ngIf="!loading && requisitos.length === 0">
+      <ion-label class="ion-text-center">Esta asignatura no tiene requisitos.</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ng-template #skel>
+    <ion-list>
+      <ion-item *ngFor="let i of [1,2]">
+        <ion-label>
+          <ion-skeleton-text animated style="width: 30%"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 50%"></ion-skeleton-text>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+</ion-content>

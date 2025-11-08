@@ -3,6 +3,7 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const helmet = require('helmet'); // <-- 1. IMPORTAS HELMET
 
 const { errorHandler } = require('./middlewares/error.middleware');
 
@@ -14,14 +15,26 @@ const seccionesRoutes = require('./routes/v1/secciones.routes'); // Rutas de Sec
 const bloquesRoutes = require('./routes/v1/bloques.routes'); // Rutas de Bloques Horarios
 const requisitosRoutes = require('./routes/v1/requisitos.routes'); // Rutas de Requisitos
 const authRoutes = require('./routes/v1/auth.routes');
-const progresoRoutes = require('./routes/v1/progreso.routes'); // <-- AÑADIDO
+const progresoRoutes = require('./routes/v1/progreso.routes');
 
 const app = express();
 
-app.disable('x-powered-by');
+// app.disable('x-powered-by'); // <-- 3. ELIMINAS ESTA LÍNEA (Helmet ya lo hace)
 
-// Middlewares globales
-app.use(cors());
+// --- Middlewares globales ---
+
+app.use(helmet()); // <-- 2. USAS HELMET (Idealmente al principio)
+
+// Opciones de CORS
+const corsOptions = {
+  origin: ['http://localhost:8100', 'http://localhost:4200'],
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
+};
+
+// Usar la configuración de CORS aquí
+app.use(cors(corsOptions));
+
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -29,11 +42,11 @@ app.use(morgan('dev'));
 app.use('/api/v1/health', healthRoutes);
 app.use('/api/v1/usuarios', usersRoutes);
 app.use('/api/v1/asignaturas', asignaturasRoutes);
-app.use('/api/v1/secciones', seccionesRoutes); // Ruta de Secciones
-app.use('/api/v1/bloques', bloquesRoutes); // Ruta de Bloques Horarios
-app.use('/api/v1/requisitos', requisitosRoutes); // Ruta de Requisitos
+app.use('/api/v1/secciones', seccionesRoutes);
+app.use('/api/v1/bloques', bloquesRoutes);
+app.use('/api/v1/requisitos', requisitosRoutes);
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/progreso', progresoRoutes); // <-- AÑADIDO
+app.use('/api/v1/progreso', progresoRoutes);
 
 
 // favicon vacío para evitar 404 ruidoso
@@ -44,14 +57,7 @@ app.use((_req, res) => {
   res.status(404).json({ error: { message: 'Not Found', code: 404 } });
 });
 
-const corsOptions = {
-  origin: ['http://localhost:8100', 'http://localhost:4200'],
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization']
-};
-app.use(cors(corsOptions));
-
-// Manejador de errores al final
+// El manejador de errores DEBE ir al final
 app.use(errorHandler);
 
 module.exports = { app };

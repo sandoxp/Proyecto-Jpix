@@ -14,10 +14,6 @@ export interface CourseCell {
 
 export type ScheduleMap = Record<string, Record<string, CourseCell | null>>;
 
-// ==================================================================
-// ================== 👇 INTERFACES MODIFICADAS 👇 ==================
-// ==================================================================
-
 /** Conflicto de tipo "Tope de horario" */
 export interface ScheduleConflict { 
   type: 'schedule'; 
@@ -35,49 +31,26 @@ export interface TransportConflict {
   to: string;    // Sede del ramo B
 }
 
-// El resultado de añadir puede ser OK, o un error (de horario o de transporte)
 export type AddResult = { ok: true } | { ok: false; error: (ScheduleConflict | TransportConflict)[] };
-
-// ==================================================================
-// ================== 👆 FIN DE MODIFICACIÓN 👆 =====================
-// ==================================================================
-
 
 const DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 const BLOCKS = Array.from({ length: 16 }, (_, i) => String(i + 1)); // 1..16 (hasta 15-16)
-const KEY = 'jpix_horario_schedule_v1';
 
-// ==================================================================
-// ================== 👇 LÓGICA DE SEDES AÑADIDA 👇 ==================
-// ==================================================================
+// --- 1. ELIMINAMOS LA 'KEY' GLOBAL DE AQUÍ ---
+// const KEY = 'jpix_horario_schedule_v1'; 
 
-// Sedes "Cercanas" (Eje Brasil, Valparaíso)
-// Asumí que SIB y G (que encontré en tus CSV) también son cercanas.
+// --- (Lógica de Sedes y helpers no cambian) ---
 const GRUPO_CERCANO = new Set(['FIN', 'CC', 'RC', 'IBC', 'RA', 'ING AU', 'ICT', 'SIB', 'G']);
-// Sedes "Lejanas"
 const GRUPO_LEJANO = new Set(['SAU', 'CU']);
 
-/**
- * Comprueba si dos sedes son incompatibles para tener en bloques seguidos.
- * Devuelve 'true' si una es cercana y la otra es lejana.
- */
 function areCampusesIncompatible(campus1: string, campus2: string): boolean {
-  if (!campus1 || !campus2) return false; // Si alguna sede no está definida, no hay conflicto
-
+  if (!campus1 || !campus2) return false;
   const c1Cercano = GRUPO_CERCANO.has(campus1);
   const c1Lejano = GRUPO_LEJANO.has(campus1);
-  
   const c2Cercano = GRUPO_CERCANO.has(campus2);
   const c2Lejano = GRUPO_LEJANO.has(campus2);
-
-  // Es incompatible si (A es cercano Y B es lejano) O (A es lejano Y B es cercano)
   return (c1Cercano && c2Lejano) || (c1Lejano && c2Cercano);
 }
-
-// ==================================================================
-// ================== 👆 FIN DE LÓGICA DE SEDES 👆 ===================
-// ==================================================================
-
 function emptySchedule(): ScheduleMap {
   const map: ScheduleMap = {} as any;
   for (const d of DAYS) {
@@ -90,22 +63,54 @@ function clone<T>(x: T): T { return JSON.parse(JSON.stringify(x)); }
 
 @Injectable({ providedIn: 'root' })
 export class HorarioService {
-  private _schedule$ = new BehaviorSubject<ScheduleMap>(this.load());
+
+  // --- 2. AÑADIMOS UNA CLAVE DINÁMICA ---
+  private KEY: string | null = null; // Se seteará por el AppComponent
+
+  // --- 3. INICIALIZAMOS LOS SUJETOS VACÍOS ---
+  private _schedule$ = new BehaviorSubject<ScheduleMap>(emptySchedule());
   readonly schedule$ = this._schedule$.asObservable();
 
-  private _codes$ = new BehaviorSubject<Set<string>>(this.computeCodes(this._schedule$.value));
+  private _codes$ = new BehaviorSubject<Set<string>>(new Set());
   readonly codes$ = this._codes$.asObservable();
 
+  // 4. Constructor vacío (tu original no tenía nada)
+  constructor() {}
+
+  // --- 5. MODIFICAMOS load() Y save() ---
   private load(): ScheduleMap {
-    try { return JSON.parse(localStorage.getItem(KEY) || 'null') || emptySchedule(); }
+    const KEY = this.KEY; // Usa la clave de la clase
+    if (!KEY) return emptySchedule(); // Si no hay clave de usuario, horario vacío
+    try { 
+      return JSON.parse(localStorage.getItem(KEY) || 'null') || emptySchedule(); 
+    }
     catch { return emptySchedule(); }
   }
+  
   private save(next: ScheduleMap) {
+    const KEY = this.KEY; // Usa la clave de la clase
+    if (!KEY) return; // No guardar si no hay clave de usuario
+    
     localStorage.setItem(KEY, JSON.stringify(next));
     this._schedule$.next(next);
     this._codes$.next(this.computeCodes(next));
   }
+  
+  // --- 6. AÑADIMOS MÉTODO PÚBLICO DE CONTROL ---
+  /**
+   * (NUEVO) Le dice al servicio qué usuario está activo
+   * y carga su horario.
+   */
+  public setActiveUser(userId: number | null) {
+    this.KEY = userId ? `jpix_horario_${userId}` : null; // Ej: 'jpix_horario_123'
+    
+    // Forzamos la recarga del horario
+    const schedule = this.load();
+    this._schedule$.next(schedule);
+    this._codes$.next(this.computeCodes(schedule));
+  }
 
+  // (El resto de tu código original: isAdded, removeByCode, etc. no cambia)
   isAdded(code: string): boolean {
     return this._codes$.value.has(code);
   }
@@ -133,18 +138,10 @@ export class HorarioService {
     }
   }
 
-  // ==================================================================
-  // ================= 👇 FUNCIÓN MODIFICADA 👇 ======================
-  // ==================================================================
-
-  /** Intenta agregar; si hay choques (horario o traslado), no agrega y devuelve los conflictos */
   addFromCatalog(code: string, kindText: string, campus: string, slots: string[])
-  : AddResult { // <-- Tipo de retorno modificado
-    
+  : AddResult {
     const next = clone(this._schedule$.value);
     const parsedSlots = this.parseSlots(slots);
-
-    // 1. Parse slots y busca conflictos DE HORARIO (tope)
     const scheduleConflicts: ScheduleConflict[] = [];
     for (const { day, bIni, bFin } of parsedSlots) {
       for (let b = bIni; b <= bFin; b++) {
@@ -155,45 +152,29 @@ export class HorarioService {
       }
     }
     if (scheduleConflicts.length) return { ok: false, error: scheduleConflicts };
-
-    // 2. Busca conflictos DE TRASLADO (sedes)
     const transportConflicts: TransportConflict[] = [];
     for (const { day, bIni, bFin } of parsedSlots) {
-      
-      // 2A. Revisa el bloque ANTERIOR (ej: si añado 3-4, revisa el 2)
       const prevBlock = String(bIni - 1);
       const cellBefore = next?.[day]?.[prevBlock];
       if (cellBefore && areCampusesIncompatible(cellBefore.room, campus)) {
         transportConflicts.push({ 
-          type: 'transport', 
-          day, 
-          block: prevBlock, // El bloque del ramo que ya estaba
-          from: cellBefore.room, // Sede del ramo que ya estaba
-          to: campus // Sede del ramo nuevo
+          type: 'transport', day, block: prevBlock, from: cellBefore.room, to: campus
         });
       }
-
-      // 2B. Revisa el bloque SIGUIENTE (ej: si añado 3-4, revisa el 5)
       const nextBlock = String(bFin + 1);
       const cellAfter = next?.[day]?.[nextBlock];
       if (cellAfter && areCampusesIncompatible(campus, cellAfter.room)) {
         transportConflicts.push({ 
-          type: 'transport', 
-          day, 
-          block: nextBlock, // El bloque del ramo que ya estaba
-          from: campus, // Sede del ramo nuevo
-          to: cellAfter.room // Sede del ramo que ya estaba
+          type: 'transport', day, block: nextBlock, from: campus, to: cellAfter.room
         });
       }
     }
     if (transportConflicts.length) return { ok: false, error: transportConflicts };
-
-    // 3. Sin choques => pinta
     const cell: CourseCell = {
       code,
-      title: '', // El título se podría añadir aquí si lo pasamos desde el catálogo
+      title: '',
       kind: kindText,
-      room: campus || '', // <- AQUÍ SE GUARDA LA SEDE
+      room: campus || '',
       mode: 'Presencial',
       type: this.mapKindToType(kindText),
     };
@@ -207,9 +188,6 @@ export class HorarioService {
     this.save(next);
     return { ok: true };
   }
-  // ==================================================================
-  // ================= 👆 FIN DE LA MODIFICACIÓN 👆 ===================
-  // ==================================================================
 
   private parseSlots(slots: string[]): Array<{ day: string; bIni: number; bFin: number }> {
     const out: Array<{ day: string; bIni: number; bFin: number }> = [];

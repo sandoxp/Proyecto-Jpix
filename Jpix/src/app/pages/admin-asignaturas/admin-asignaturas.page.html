@@ -1,0 +1,147 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Gestión de Asignaturas</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="load()" [disabled]="loading">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+      <ion-button color="primary" (click)="openCreate()">
+        <ion-icon name="add-outline"></ion-icon>
+        <ion-label class="ml-2">Nueva</ion-label>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-list *ngIf="!loading; else skel">
+    <ion-item *ngFor="let a of asignaturas; trackBy: trackBySigla">
+      <ion-label>
+        <h2>
+          {{ a.sigla }} - {{ a.nombre }}
+          <ion-chip [color]="a.tipo === 'obligatoria' ? 'danger' : (a.tipo === 'fofu' ? 'success' : 'medium')" outline>
+            {{ a.tipo }}
+          </ion-chip>
+        </h2>
+        <p>{{ a.creditos }} créditos · Semestre: {{ a.periodo_malla || 'N/A' }}</p>
+      </ion-label>
+      <ion-buttons slot="end">
+        <ion-button size="small" (click)="openEdit(a)">
+          <ion-icon name="create-outline"></ion-icon>
+        </ion-button>
+        <ion-button size="small" color="danger" (click)="remove(a)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-item>
+  </ion-list>
+
+  <ng-template #skel>
+    <ion-list>
+      <ion-item *ngFor="let i of [1,2,3,4,5]">
+        <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+
+  <ion-modal [isOpen]="createOpen" (didDismiss)="closeCreate()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Nueva Asignatura</ion-title>
+          <ion-buttons slot="end"><ion-button (click)="closeCreate()">Cerrar</ion-button></ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <form [formGroup]="createForm" (ngSubmit)="saveCreate()">
+          <ion-item>
+            <ion-label position="stacked">Sigla</ion-label>
+            <ion-input formControlName="sigla" placeholder="INF100"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Nombre</ion-label>
+            <ion-input formControlName="nombre" placeholder="Introducción a..."></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Créditos</ion-label>
+            <ion-input type="number" formControlName="creditos"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Semestre Malla</ion-label>
+            <ion-input type="number" formControlName="periodo_malla"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label>Tipo</ion-label>
+            <ion-select interface="popover" formControlName="tipo">
+              <ion-select-option value="obligatoria">Obligatoria</ion-select-option>
+              <ion-select-option value="fofu">FOFU</ion-select-option>
+              <ion-select-option value="ingles">Inglés</ion-select-option>
+              <ion-select-option value="optativa">Optativa</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-button expand="block" type="submit" [disabled]="createForm.invalid">Crear</ion-button>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal [isOpen]="editOpen" (didDismiss)="closeEdit()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Editar Asignatura</ion-title>
+          <ion-buttons slot="end"><ion-button (click)="closeEdit()">Cerrar</ion-button></ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      
+      <ion-content class="ion-padding" *ngIf="editingAsignatura">
+        
+        <form [formGroup]="editForm" (ngSubmit)="saveEdit()">
+          <ion-item>
+            <ion-label position="stacked">Nombre</ion-label>
+            <ion-input formControlName="nombre"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Créditos</ion-label>
+            <ion-input type="number" formControlName="creditos"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Semestre Malla</ion-label>
+            <ion-input type="number" formControlName="periodo_malla"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label>Tipo</ion-label>
+            <ion-select interface="popover" formControlName="tipo">
+              <ion-select-option value="obligatoria">Obligatoria</ion-select-option>
+              <ion-select-option value="fofu">FOFU</ion-select-option>
+              <ion-select-option value="ingles">Inglés</ion-select-option>
+              <ion-select-option value="optativa">Optativa</ion-select-option>
+            </ion-select>
+          </ion-item>
+          <ion-button expand="block" type="submit" [disabled]="editForm.invalid">Guardar Cambios</ion-button>
+        </form>
+
+        <div class="ion-padding-top">
+          <ion-item-divider>
+            <ion-label>Gestión de Detalle</ion-label>
+          </ion-item-divider>
+          
+          <ion-button expand="block" fill="outline" (click)="openSeccionesManager(editingAsignatura)">
+            <ion-icon slot="start" name="list-outline"></ion-icon>
+            Gestionar Secciones y Bloques
+          </ion-button>
+          
+          <ion-button expand="block" fill="outline" (click)="openRequisitosManager(editingAsignatura)" color="tertiary">
+            <ion-icon slot="start" name="key-outline"></ion-icon>
+            Gestionar Requisitos
+          </ion-button>
+        </div>
+
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>

@@ -4,33 +4,15 @@
   </div>
 
   <div class="ion-padding-horizontal ion-padding-bottom" *ngIf="!loading && userIRA !== 'bajo'" style="padding-top: 0;">
-    <ion-text color="medium"><small>SOBRECARGA ACADÉMICA (IRA: {{ userIRA | uppercase }})</small></ion-text>
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.1em; margin-top: 8px;">
-      <span>Créditos (Oblig/Opt): <strong>{{ currentCredits }}</strong></span>
-      <span style="font-weight: 500;">Límite: {{ maxCredits }}</span>
     </div>
-    <ion-progress-bar [value]="currentCredits / maxCredits"
-                      [color]="currentCredits > maxCredits ? 'danger' : 'secondary'"
-                      style="margin-top: 6px; height: 8px; border-radius: 4px;">
-    </ion-progress-bar>
-
-    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.1em; margin-top: 12px;">
-      <span>Asignaturas FOFU: <strong>{{ currentFofu }}</strong></span>
-      <span style="font-weight: 500;">Límite: {{ maxFofu }}</span>
-    </div>
-    <ion-progress-bar [value]="currentFofu / maxFofu"
-                      [color]="currentFofu > maxFofu ? 'danger' : 'secondary'"
-                      style="margin-top: 6px; height: 8px; border-radius: 4px;">
-    </ion-progress-bar>
-  </div>
+  
   <div class="progress-link-banner ion-padding-horizontal">
     <span>¿Reprobaste alguna asignatura y no aparece? Modifica tu progreso
       <a routerLink="/progreso">apretando aquí</a>.
     </span>
   </div>
-  <ion-segment [(ngModel)]="filter" value="all" class="filters" mode="md">
 
+  <ion-segment [(ngModel)]="filter" value="all" class="filters" mode="md">
     <ion-segment-button value="all">
       <ion-label>Todos</ion-label>
     </ion-segment-button>
@@ -49,7 +31,6 @@
   </ion-segment>
 
   <div class="catalog-shell">
-
     <div class="catalog-slab">
       <div class="h-scroll" role="region" aria-label="Catálogo desplazable" tabindex="0">
         <div class="table-width">
@@ -63,20 +44,23 @@
             <div class="th" role="columnheader">Sede</div>
             <div class="th th-right" role="columnheader">Aprobación</div>
           </div>
+          
           <ion-spinner name="crescent" *ngIf="loading" style="display:block; margin:12px auto;"></ion-spinner>
 
-
           <ion-list lines="none" class="course-list">
+            
             <ion-item class="course-card" detail="false"
-                      *ngFor="let c of viewCourses; trackBy: trackByCode">
+                      *ngFor="let c of viewCourses; trackBy: trackByCode"
+                      (click)="openDetalle(c, $event)"
+                      button="true"
+                      [class.course-added]="isAdded(c.code)"> 
+              
               <div class="row" role="row">
                 <div class="cell asignatura" role="cell">
-
                   <ion-badge color="warning" *ngIf="c.estado === 'reprobada'" class="reprobada-badge">
                     <ion-icon name="warning-outline"></ion-icon>
                     Reprobada
                   </ion-badge>
-
                   <div class="code">{{ c.code }}</div>
                   <div class="name">{{ c.name }}</div>
                 </div>
@@ -93,30 +77,81 @@
 
                 <div class="cell aprobacion th-right" role="cell">
                   <b>{{ c.approval }}%</b>
-
-                  <ng-container *ngIf="isAdded(c.code); else addBtn">
-                    <ion-button fill="clear" class="add-btn" color="danger"
-                                aria-label="Quitar {{ c.code }}"
-                                (click)="removeCourse(c.code)">
-                      <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-                    </ion-button>
-                  </ng-container>
-
-                  <ng-template #addBtn>
-                    <ion-button fill="clear" class="add-btn"
-                                aria-label="Agregar {{ c.code }}"
-                                (click)="addCourse(c)">
-                      <ion-icon slot="icon-only" name="add-circle-outline" aria-hidden="true"></ion-icon>
-                    </ion-button>
-                  </ng-template>
-                </div>
+                  </div>
               </div>
             </ion-item>
           </ion-list>
         </div>
       </div>
-
       <div class="dots" role="presentation"></div>
     </div>
   </div>
+
+  <ion-modal [isOpen]="!!detalleCurso" (didDismiss)="closeDetalle()">
+    <ng-template>
+    
+      <ion-header *ngIf="detalleCurso">
+        <ion-toolbar>
+          <ion-title>{{ detalleCurso.code }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeDetalle()">Cerrar</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      
+      <ion-content class="ion-padding" *ngIf="detalleCurso">
+        
+        <h2>{{ detalleCurso.name }}</h2>
+        
+        <ion-list lines="full">
+          <ion-item>
+            <ion-label>Tipo</ion-label>
+            <ion-note slot="end">{{ detalleCurso.type }}</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Créditos</ion-label>
+            <ion-note slot="end">{{ detalleCurso.credits }}</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Profesor(a)</ion-label>
+            <ion-note slot="end">{{ detalleCurso.professor || 'No asignado' }}</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Sede</ion-label>
+            <ion-note slot="end">{{ detalleCurso.campus || 'No asignada' }}</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Tasa Aprobación</ion-label>
+            <ion-note slot="end">{{ detalleCurso.approval }}%</ion-note>
+          </ion-item>
+          <ion-item>
+            <ion-label>Horario(s)</ion-label>
+            <div slot="end" class="ion-text-end">
+              <ion-note *ngFor="let s of detalleCurso.schedule">
+                {{ s }}<br>
+              </ion-note>
+            </div>
+          </ion-item>
+        </ion-list>
+      </ion-content>
+
+      <ion-footer class="ion-padding" *ngIf="detalleCurso">
+        <ion-toolbar>
+          <ng-container *ngIf="isAdded(detalleCurso.code); else addBtnModal">
+            <ion-button expand="block" color="danger" (click)="removeCourse(detalleCurso.code)">
+              <ion-icon slot="start" name="trash-outline"></ion-icon>
+              Quitar del Horario
+            </ion-button>
+          </ng-container>
+          <ng-template #addBtnModal>
+            <ion-button expand="block" color="success" (click)="addCourse(detalleCurso)">
+              <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+              Añadir al Horario
+            </ion-button>
+          </ng-template>
+        </ion-toolbar>
+      </ion-footer>
+    </ng-template>
+  </ion-modal>
+  
 </ion-content>

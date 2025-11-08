@@ -24,6 +24,7 @@
 }
 
 /* ======== MOVIL (<=900px): activar scroll lateral ======== */
+/* (Este es tu código original, que mantiene la tabla) */
 @media (max-width: 900px) {
   .h-scroll {
     overflow-x: auto;
@@ -82,6 +83,8 @@
   box-sizing: border-box;
   color: var(--ion-text-color);
   box-shadow: 0 2px 8px var(--jpix-shadow-color); // Asegúrate de tener esta variable
+  transition: background-color 0.3s ease, border 0.3s ease;
+  border: 1px solid transparent; // Borde por defecto
 }
 
 /* Celdas */
@@ -159,7 +162,7 @@
 .filters {
   margin: 8px auto 16px; // Añadido margen inferior
   max-width: 1200px;     // Ancho máximo para el filtro
-  display: block;        // Asegura que ocupe su propio espacio
+  display: block;       // Asegura que ocupe su propio espacio
   --background: transparent; // Fondo transparente
 }
 .filters ion-segment-button {
@@ -178,7 +181,7 @@
   font-weight: 600; // Texto en negrita
 }
 
-// --- AÑADIDO: Estilo para el badge de asignatura reprobada ---
+/* Badge de asignatura reprobada */
 .reprobada-badge {
   font-size: 0.7em;
   margin-bottom: 4px; // Espacio antes de la sigla
@@ -190,16 +193,15 @@
   --padding-top: 3px;
   --padding-bottom: 3px;
 }
-// --- FIN DE LO AÑADIDO ---
 
-// --- AÑADIDO: Estilo para el banner de link a Progreso ---
+/* Banner de link a Progreso */
 .progress-link-banner {
   text-align: center;
-  padding: 8px 16px;    // Padding vertical y horizontal
+  padding: 8px 16px;     // Padding vertical y horizontal
   margin: 0 auto 16px; // Centrado y con margen inferior aumentado
-  max-width: 980px;    // Mismo ancho que .catalog-slab
+  max-width: 980px;     // Mismo ancho que .catalog-slab
   background: var(--ion-color-warning-tint, #ffce5b); // Fondo amarillo claro
-  color: var(--ion-color-warning-contrast, #000);    // Texto oscuro
+  color: var(--ion-color-warning-contrast, #000);     // Texto oscuro
   font-size: 0.9em;
   font-weight: 500;
   border-radius: 8px; // Bordes redondeados
@@ -217,4 +219,14 @@
     }
   }
 }
-// --- FIN DE LO AÑADIDO ---
+
+/* =============================================== */
+/* --- 👇 ESTILO DISTINTIVO (CORREGIDO) 👇 --- */
+/* =============================================== */
+/* Esto se aplica al .row cuando el .course-card
+  (el <ion-item>) tiene la clase .course-added 
+*/
+.course-card.course-added .row {
+  background: var(--ion-color-success-tint, #f0fff0);
+  border: 1px solid var(--ion-color-success-shade, #a0dca0);
+}

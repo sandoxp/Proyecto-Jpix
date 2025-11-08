@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-// --- MODIFICADO: Importamos los nuevos tipos de error ---
 import { HorarioService, ScheduleConflict, TransportConflict } from '../../services/horario.service';
 import { AsignaturasService, Asignatura, Seccion } from '../../services/asignaturas.service';
 import { ProgresoEstado, AsignaturaConProgreso } from '../../services/progreso.service';
@@ -31,7 +30,8 @@ export class CatalogoPage implements OnInit {
   filter: Segment = 'all';
   addedCodes = new Set<string>();
 
-  // Lógica de IRA (sin cambios)
+  detalleCurso: Course | null = null; // El curso que se está viendo en el modal
+
   userIRA: IraLevel = 'bajo';
   maxCredits: number = 999;
   maxFofu: number = 999; 
@@ -50,12 +50,10 @@ export class CatalogoPage implements OnInit {
     const user = this.auth.getUser();
     this.userIRA = user?.ira || 'bajo';
     this.setLimitsByIRA();
-
     this.horario.codes$.subscribe(set => {
       this.addedCodes = set;
       this.calculateCurrentCounts();
     });
-    
     await this.loadFromApi();
   }
 
@@ -74,14 +72,27 @@ export class CatalogoPage implements OnInit {
 
   trackByCode(_: number, c: Course) { return c.code; }
 
-  // ==================================================================
-  // ================= 👇 FUNCIÓN MODIFICADA (addCourse) 👇 ============
-  // ==================================================================
+  // ===============================================
+  // --- 👇 AQUÍ ESTÁ LA CORRECCIÓN DE 'aria-hidden' 👇 ---
+  // ===============================================
+  openDetalle(c: Course, event: Event) { // <-- 1. Acepta el 'event'
+    // 2. Quitamos el foco del botón/item que se acaba de presionar
+    (event.target as HTMLElement).blur();
+    
+    // 3. Abrimos el modal
+    this.detalleCurso = c;
+  }
+  // --- 👆 FIN DE LA CORRECCIÓN 👆 ---
+
+  closeDetalle() {
+    this.detalleCurso = null;
+  }
+  
   async addCourse(c: Course) {
     const fofuType = this.tipoTexto('fofu');
     const inglesType = this.tipoTexto('ingles');
 
-    // 1. Verificación de LÍMITES DE IRA (sin cambios)
+    // 1. Verificación de LÍMITES DE IRA
     if (c.type === fofuType) {
       if (this.currentFofu + 1 > this.maxFofu) {
         const t = await this.toastCtrl.create({
@@ -95,64 +106,57 @@ export class CatalogoPage implements OnInit {
       if (this.currentCredits + c.credits > this.maxCredits) {
         const t = await this.toastCtrl.create({
           message: `¡Límite de créditos! (IRA ${this.userIRA}). No puedes añadir ${c.code} (${c.credits} créditos).
-                    Total actual: ${this.currentCredits} / ${this.maxCredits}`,
+                       Total actual: ${this.currentCredits} / ${this.maxCredits}`,
           duration: 3000, color: 'danger', position: 'top'
         });
         return t.present();
       }
     }
 
-    // 2. Verificación de "YA AÑADIDO" (sin cambios)
+    // 2. Verificación de "YA AÑADIDO"
     if (this.horario.isAdded(c.code)) {
       const t = await this.toastCtrl.create({ message: `${c.code} ya está en tu horario`, duration: 1500, color: 'warning' });
       return t.present();
     }
 
-    // --- MODIFICADO: Verificación de CONFLICTOS (Horario y Traslado) ---
+    // 3. Verificación de CONFLICTOS (Horario y Traslado)
     const res = this.horario.addFromCatalog(c.code, c.type, c.campus, c.schedule);
     
     if (!res.ok) {
       const firstError = res.error[0];
-      let message = 'No se pudo agregar. Error desconocido.'; // Mensaje por defecto
-
-      // 2A. Es un conflicto de TRASLADO
+      let message = 'No se pudo agregar. Error desconocido.'; 
       if (firstError.type === 'transport') {
         const err = firstError as TransportConflict;
         message = `¡Conflicto de traslado! El ramo en ${err.from} (${err.day} ${err.block}) está en una sede lejana al ramo que intentas añadir en ${err.to}. El tiempo de viaje no es suficiente.`;
-      
-      // 2B. Es un conflicto de HORARIO (tope)
       } else if (firstError.type === 'schedule') {
         const lines = res.error
           .slice(0, 3)
           .map(e => {
-            const err = e as ScheduleConflict; // Casteo al tipo correcto
-            return `${err.day} ${err.block} ocupado por ${err.with}`;
+            const err = e as ScheduleConflict; 
+            // Cambiamos el texto para que sea más claro
+            return `${err.day} (clave ${err.block}) está ocupado por ${err.with}`; 
           })
           .join(' · ');
         message = `No se pudo agregar. Choques: ${lines}${res.error.length > 3 ? '…' : ''}`;
       }
       
-      // Muestra el Toast de error
       const t = await this.toastCtrl.create({
         message,
-        duration: 4000, // Más tiempo para que se lea bien el mensaje de traslado
+        duration: 4000,
         color: 'danger',
-        position: 'top' // Arriba para que sea más visible
+        position: 'top'
       });
       return t.present();
     }
-    // --- FIN DE LA MODIFICACIÓN ---
 
-    // 3. ÉXITO (sin cambios)
+    // 4. ÉXITO
     const toast = await this.toastCtrl.create({
       message: `${c.code} agregado al borrador de horario`,
       duration: 1500, position: 'bottom', color: 'success'
     });
     await toast.present();
+    this.closeDetalle();
   }
-  // ==================================================================
-  // ================= 👆 FIN DE LA MODIFICACIÓN 👆 ===================
-  // ==================================================================
 
   async removeCourse(code: string) {
     const removed = this.horario.removeByCode(code);
@@ -161,24 +165,22 @@ export class CatalogoPage implements OnInit {
       duration: 1400, color: removed ? 'medium' : 'warning'
     });
     t.present();
+    this.closeDetalle();
   }
 
   isAdded(code: string) { return this.addedCodes.has(code); }
 
   // ==== Carga y helpers ====
-
   private calculateCurrentCounts() {
     if (!this.allCourses.length) {
       this.currentCredits = 0;
       this.currentFofu = 0;
       return;
     }
-
     let totalCredits = 0;
     let totalFofu = 0;
     const fofuType = this.tipoTexto('fofu');
     const inglesType = this.tipoTexto('ingles');
-
     for (const code of this.addedCodes) {
       const course = this.allCourses.find(c => c.code === code);
       if (course) {
@@ -199,15 +201,12 @@ export class CatalogoPage implements OnInit {
     try {
       const response = await firstValueFrom(this.api.getMiCatalogo());
       const details = response.data as AsignaturaConProgreso[];
-
       const list: Course[] = [];
       for (const a of details) {
         if (!a) continue;
-
         const approval = this.toApproval(a.tasa_aprobacion_pct, a.tasa_aprobacion);
         const tipoTxt = this.tipoTexto(a.tipo);
         const estadoValido = (a.estado === 'aprobada' || a.estado === 'reprobada') ? a.estado : 'pendiente';
-
         if (!a.secciones?.length) {
           list.push({
             code: a.sigla, name: a.nombre, type: tipoTxt, credits: a.creditos || 0,
@@ -216,7 +215,6 @@ export class CatalogoPage implements OnInit {
           });
           continue;
         }
-
         for (const s of a.secciones) {
           const campus = this.firstNonEmpty((s.bloques || []).map(b => b.sede || '')) || '';
           const schedule = this.makeScheduleStrings(s);
@@ -227,10 +225,8 @@ export class CatalogoPage implements OnInit {
           });
         }
       }
-
       this.allCourses = list;
       this.calculateCurrentCounts();
-
     } catch (err) {
       console.error('Error cargando el catálogo', err);
       const t = await this.toastCtrl.create({
@@ -302,7 +298,6 @@ export class CatalogoPage implements OnInit {
         if (this.filter === 'electivo') return t.includes('elect') || t.includes('optat');
         return true;
       });
-
     return filtered.sort((a, b) => {
       if (a.estado === 'reprobada' && b.estado !== 'reprobada') return -1;
       if (a.estado !== 'reprobada' && b.estado === 'reprobada') return 1;

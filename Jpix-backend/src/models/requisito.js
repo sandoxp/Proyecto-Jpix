@@ -9,10 +9,12 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true
   });
 
-  // 🔧 agrega esto:
+  // Esta asociación es clave para que el controlador funcione
   Requisito.associate = (models) => {
+    // La asignatura "dueña" del requisito
     Requisito.belongsTo(models.Asignatura, { as: 'asignatura', foreignKey: 'asignatura_id' });
-    Requisito.belongsTo(models.Asignatura, { as: 'requerida',  foreignKey: 'requiere_id'  }); // opcional pero útil
+    // La asignatura que "es" el requisito
+    Requisito.belongsTo(models.Asignatura, { as: 'requerida',  foreignKey: 'requiere_id'   });
   };
 
   return Requisito;

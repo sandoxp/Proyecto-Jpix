@@ -1,0 +1,212 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Gestionar Secciones de {{ asignatura.sigla }}</ion-title>
+    <ion-buttons slot="start">
+      <ion-button (click)="dismissModal()">Cerrar</ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadSecciones()" [disabled]="loading" aria-label="Refrescar">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+      <ion-button (click)="openCreate()" aria-label="Añadir Nueva Sección">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="onRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <ion-list *ngIf="!loading; else skel">
+    <ion-item-sliding *ngFor="let s of secciones; trackBy: trackById">
+      <ion-item>
+        <ion-label>
+          <h2>Sección {{ s.seccion }}</h2>
+          <p>{{ s.docente || 'Sin docente' }}</p>
+          <p>
+            <span *ngFor="let b of s.bloques" class="bloque-chip">
+              {{ b.dia }} {{ b.clave_ini }}-{{ b.clave_fin }} ({{b.sede}} / {{ b.sala }}) <br>
+            </span>
+            </p>
+        </ion-label>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="primary" (click)="openEdit(s)">
+          <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+        </ion-item-option>
+        <ion-item-option color="danger" (click)="remove(s)">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+    <ion-item *ngIf="!loading && secciones.length === 0">
+      <ion-label class="ion-text-center">No hay secciones para esta asignatura.</ion-label>
+    </ion-item>
+  </ion-list>
+
+  <ng-template #skel>
+    <ion-list>
+      <ion-item *ngFor="let i of [1,2,3]">
+        <ion-label>
+          <ion-skeleton-text animated style="width: 40%"></ion-skeleton-text>
+          <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  </ng-template>
+
+
+  <ion-modal [isOpen]="createOpen" (didDismiss)="closeCreate()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Nueva Sección para {{ asignatura.sigla }}</ion-title>
+          <ion-buttons slot="end"><ion-button (click)="closeCreate()">Cerrar</ion-button></ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      
+      <ion-content class="ion-padding">
+        <form [formGroup]="createForm" (ngSubmit)="saveCreate()">
+          <ion-item>
+            <ion-label position="stacked">N° Sección</ion-label>
+            <ion-input formControlName="seccion" placeholder="1"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Docente</ion-label>
+            <ion-input formControlName="docente" placeholder="Nombre Apellido"></ion-input>
+          </ion-item>
+          <ion-item-divider>
+            <ion-label>Bloques Horarios</ion-label>
+          </ion-item-divider>
+
+          <div formArrayName="bloques">
+            <div *ngFor="let bloque of createBloques.controls; let i = index" [formGroupName]="i" class="bloque-form">
+              <ion-item>
+                <ion-label>Día</ion-label>
+                <ion-select interface="popover" formControlName="dia">
+                  <ion-select-option *ngFor="let d of dias" [value]="d">{{ d }}</ion-select-option>
+                </ion-select>
+              </ion-item>
+              
+              <ion-item>
+                <ion-label position="stacked">Clave Inicio</ion-label>
+                <ion-input formControlName="clave_ini" type="number" placeholder="1"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Clave Fin</ion-label>
+                <ion-input formControlName="clave_fin" type="number" placeholder="2"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Sede</ion-label>
+                <ion-input formControlName="sede" placeholder="IBC"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Sala</ion-label>
+                <ion-input formControlName="sala" placeholder="A-101"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Hora Inicio</ion-label>
+                <ion-input formControlName="hora_inicio" type="time" placeholder="08:30"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Hora Fin</ion-label>
+                <ion-input formControlName="hora_fin" type="time" placeholder="10:00"></ion-input>
+              </ion-item>
+              <ion-button fill="clear" color="danger" (click)="removeBloque(createForm, i)" [disabled]="createBloques.length <= 1">
+                <ion-icon slot="icon-only" name="trash-bin-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          
+          <ion-button fill="outline" expand="block" (click)="addBloque(createForm)">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Añadir Bloque
+          </ion-button>
+          <ion-button expand="block" type="submit" [disabled]="createForm.invalid" class="ion-margin-top">
+            Crear Sección
+          </ion-button>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  
+  <ion-modal [isOpen]="editOpen" (didDismiss)="closeEdit()">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Editar Sección {{ editingSeccion?.seccion }}</ion-title>
+          <ion-buttons slot="end"><ion-button (click)="closeEdit()">Cerrar</ion-button></ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding" *ngIf="editingSeccion">
+        <form [formGroup]="editForm" (ngSubmit)="saveEdit()">
+          <ion-item>
+            <ion-label position="stacked">N° Sección</ion-label>
+            <ion-input formControlName="seccion"></ion-input>
+          </ion-item>
+          <ion-item>
+            <ion-label position="stacked">Docente</ion-label>
+            <ion-input formControlName="docente"></ion-input>
+          </ion-item>
+          <ion-item-divider>
+            <ion-label>Bloques Horarios</ion-label>
+          </ion-item-divider>
+
+          <div formArrayName="bloques">
+            <div *ngFor="let bloque of editBloques.controls; let i = index" [formGroupName]="i" class="bloque-form">
+              <ion-item>
+                <ion-label>Día</ion-label>
+                <ion-select interface="popover" formControlName="dia">
+                  <ion-select-option *ngFor="let d of dias" [value]="d">{{ d }}</ion-select-option>
+                </ion-select>
+              </ion-item>
+              
+              <ion-item>
+                <ion-label position="stacked">Clave Inicio</ion-label>
+                <ion-input formControlName="clave_ini" type="number"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Clave Fin</ion-label>
+                <ion-input formControlName="clave_fin" type="number"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Sede</ion-label>
+                <ion-input formControlName="sede"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Sala</ion-label>
+                <ion-input formControlName="sala"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Hora Inicio</ion-label>
+                <ion-input formControlName="hora_inicio" type="time"></ion-input>
+              </ion-item>
+              <ion-item>
+                <ion-label position="stacked">Hora Fin</ion-label>
+                <ion-input formControlName="hora_fin" type="time"></ion-input>
+              </ion-item>
+              <ion-button fill="clear" color="danger" (click)="removeBloque(editForm, i)">
+                <ion-icon slot="icon-only" name="trash-bin-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          
+          <ion-button fill="outline" expand="block" (click)="addBloque(editForm)">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Añadir Bloque
+          </ion-button>
+          <ion-button expand="block" type="submit" [disabled]="editForm.invalid" class="ion-margin-top">
+            Guardar Cambios
+          </ion-button>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

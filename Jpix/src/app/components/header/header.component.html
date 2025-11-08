@@ -1,4 +1,4 @@
-<ion-menu contentId="main-content" side="start">
+<ion-menu #menu contentId="main-content" side="start">
   <ion-header>
     <ion-toolbar>
       <ion-title>Menu</ion-title>
@@ -6,12 +6,43 @@
   </ion-header>
   <ion-content class="ion-padding">
     <ion-list>
-      <ion-item routerLink="/home">Home</ion-item>
-      <ion-item routerLink="/catalogo">Catálogo</ion-item>
-      <ion-item routerLink="/horario">Horario</ion-item>
+      
+      <div *ngIf="isEstudiante">
+        <ion-item button (click)="goToHome(menu)">Home</ion-item>
+        <ion-item button (click)="goToCatalogo(menu)">Catálogo</ion-item>
+        <ion-item button (click)="goToHorario(menu)">Horario</ion-item>
+        <ion-item button (click)="goToProgreso(menu)">Progreso</ion-item>
+      </div>
 
-      <ion-item routerLink="/progreso">Progreso</ion-item>
-      <ion-item routerLink="/perfil">Perfil</ion-item>
+      <div *ngIf="isAdmin">
+        <ion-item button (click)="goToAdminUsuarios(menu)">Gestión Usuarios</ion-item>
+        <ion-item button (click)="goToAdminAsignaturas(menu)">Gestión Asignaturas</ion-item>
+      </div>
+
+      <ion-item button (click)="goToPerfil(menu)">Perfil</ion-item>
+      
+      <ion-item-divider>
+        <ion-label>Accesibilidad</ion-label>
+      </ion-item-divider>
+      <ion-item>
+        <ion-icon name="eye-outline" slot="start" aria-hidden="true"></ion-icon>
+        <ion-label>Modo Daltónico</ion-label>
+        <ion-toggle
+          [checked]="isColorblindMode"
+          (ionChange)="toggleColorblindMode()"
+          aria-label="Activar modo daltónico">
+        </ion-toggle>
+      </ion-item>
+      <ion-item>
+        <ion-icon name="moon-outline" slot="start" aria-hidden="true"></ion-icon>
+        <ion-label>Modo Oscuro</ion-label>
+        <ion-toggle
+          [checked]="isDarkMode"
+          (ionChange)="toggleDarkMode()"
+          aria-label="Activar modo oscuro">
+        </ion-toggle>
+      </ion-item>
+      
     </ion-list>
   </ion-content>
 </ion-menu>
@@ -45,13 +76,7 @@
       </ion-chip>
     </ion-buttons>
 
-    <ion-buttons slot="end" *ngIf="isAdmin">
-      <ion-button (click)="goToAdminUsuarios()">
-        <ion-icon name="people-outline"></ion-icon>
-        <ion-label class="ml-2">Usuarios</ion-label>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+    </ion-toolbar>
 </ion-header>
 
 <ion-popover

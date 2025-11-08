@@ -1,22 +1,40 @@
 <ion-tab-bar slot="bottom" color="primary">
-    <ion-tab-button (click) = "goToHome()" tab="home">
+  
+  <ng-container *ngIf="isEstudiante$ | async">
+    <ion-tab-button (click)="goToHome()" tab="home">
       <ion-icon name="home"></ion-icon>
       Home
     </ion-tab-button>
-    <ion-tab-button (click) = "goToCatalogo()" tab="Catalogo">
+    <ion-tab-button (click)="goToCatalogo()" tab="Catalogo">
       <ion-icon name="search"></ion-icon>
       Catálogo
     </ion-tab-button>
-    <ion-tab-button  (click) = "goToHorario()"tab="Horario">
+    <ion-tab-button (click)="goToHorario()" tab="Horario">
       <ion-icon name="calendar"></ion-icon>
       Horario
     </ion-tab-button>
-    
-    <ion-tab-button (click) = "goToProgreso()" tab="progreso">
+    <ion-tab-button (click)="goToProgreso()" tab="progreso">
       <ion-icon name="school"></ion-icon> Progreso
     </ion-tab-button>
-    <ion-tab-button  (click) = "goToPerfil()"tab="Perfil">
+    <ion-tab-button (click)="goToPerfil()" tab="Perfil">
       <ion-icon name="person"></ion-icon>
       Perfil
     </ion-tab-button>
+  </ng-container>
+
+  <ng-container *ngIf="isAdmin$ | async">
+    <ion-tab-button (click)="goToAdminUsuarios()" tab="admin-usuarios">
+      <ion-icon name="people-outline"></ion-icon>
+      Usuarios
+    </ion-tab-button>
+    <ion-tab-button (click)="goToAdminAsignaturas()" tab="admin-asignaturas">
+      <ion-icon name="cog-outline"></ion-icon>
+      Asignaturas
+    </ion-tab-button>
+    <ion-tab-button (click)="goToPerfil()" tab="Perfil">
+      <ion-icon name="person"></ion-icon>
+      Perfil
+    </ion-tab-button>
+  </ng-container>
+
 </ion-tab-bar>
