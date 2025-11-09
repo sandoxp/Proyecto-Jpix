@@ -1,3 +1,7 @@
+// ============================================================================
+// INTEGRACIÓN COMPLETA DEL FIX EN TU CHAT.SERVICE.TS
+// ============================================================================
+
 import { Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { AuthService, UserData } from '../auth';
@@ -11,6 +15,8 @@ type Step =
   | 'none'
   | 'organizar.awaiting_choice'
   | 'organizar.awaiting_prefs'
+  | 'organizar.awaiting_prefs_decision'  // ← NUEVO: Esperando decisión borrador/manual
+  | 'organizar.awaiting_borrador_confirm' // ← NUEVO: Confirmación de borrador
   | 'ubicacion.awaiting_sedes'
   | 'agregar.awaiting_confirm';
 
@@ -24,13 +30,33 @@ export class ChatService {
     private horario: HorarioService
   ) {}
 
-  // ====== Estado mínimo de conversación ======
+  // ====== Estado de conversación ======
   private flow: Flow = 'none';
   private step: Step = 'none';
   private pendingAsignatura: Asignatura | null = null;
   private sedeOrigen?: string;
+  
+  // ⭐ NUEVO: Borrador propuesto en flujo "organizar"
+  private borradorPropuesto: Asignatura[] = [];
+  private userPrefs: string = '';
 
-  // ====== API ======
+  private conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+
+  private readonly SYNONYMS = {
+    'agregar': ['agregar', 'añadir', 'anadir', 'agrega', 'anade', 'añade', 'inscribir', 'inscribe', 'inscribi', 'registrar', 'registra', 'nuevo', 'adicionar'],
+    'eliminar': ['eliminar', 'borrar', 'quitar', 'remover', 'delete', 'remove', 'sacar', 'saca', 'borra'],
+    'modificar': ['modificar', 'cambiar', 'actualizar', 'editar', 'update', 'edit', 'alterar', 'altera'],
+    'listar': ['listar', 'mostrar', 'ver', 'list', 'show', 'display', 'cuales', 'cuáles', 'cuales son', 'cuáles son', 'dame el', 'me muestras', 'muestra', 'enseña', 'dime'],
+    'buscar': ['buscar', 'encontrar', 'search', 'find', 'hablame de', 'hablame de', 'cual es', 'cuál es', 'como es', 'cómo es'],
+    'confirmar': ['si', 'sí', 's', 'yes', 'ok', 'dale', 'claro', 'sep', 'de acuerdo', 'adelante', 'seguro', 'vale', 'proceed', 'go', 'yes please', 'yep', 'oks', 'esta bien', 'está bien', 'me parece bien', 'bueno', 'perfecto'],
+    'rechazar': ['no', 'nop', 'nope', 'n', 'nel', 'nada', 'cancel', 'cancelar', 'reject', 'abortar', 'abort', 'no gracias', 'mejor no', 'nay', 'nope', 'negative', 'na', 'nothing', 'never'],
+    'organizar': ['organiza', 'organices', 'horario', 'planificar', 'agendar', 'schedule', 'calendario', 'programa', 'ordenar', 'organizar', 'organice', 'plan', 'arregla', 'arreglo'],
+    'ubicacion': ['distancia', 'ubicacion', 'ubicación', 'sede', 'sedes', 'campus', 'donde', 'dónde', 'location', 'donde queda', 'como llego', 'cómo llego', 'location', 'place', 'localidad'],
+    'cancelar': ['cancelar', 'cancel', 'reiniciar', 'reiniciar', 'restart', 'reset', 'volver', 'atrás', 'atras', 'back', 'go back', 'abortar', 'abort', 'empezar de nuevo', 'desde el inicio']
+  };
+
+  // ====== API PÚBLICA ======
+
   resetConversation(): void {
     this.reset();
   }
@@ -40,18 +66,29 @@ export class ChatService {
     switch (flow) {
       case 'organizar':
         this.flow = 'organizar';
-        return await this.handleOrganizarStart();
+        const msgOrganizar = await this.handleOrganizarStart();
+        this.conversationHistory.push({ role: 'assistant', content: msgOrganizar });
+        return msgOrganizar;
+
       case 'ubicacion':
         this.flow = 'ubicacion';
         this.step = 'ubicacion.awaiting_sedes';
-        return '¡Hola! ¿De qué sedes quieres saber la **ubicación o distancia**? (por ejemplo: "Sausalito y Casa Central")';
+        const msgUbicacion = '¡Hola! ¿De qué sedes quieres saber la **ubicación o distancia**? (por ejemplo: "Sausalito y Casa Central")';
+        this.conversationHistory.push({ role: 'assistant', content: msgUbicacion });
+        return msgUbicacion;
+
       case 'agregar':
         this.flow = 'agregar';
         this.step = 'none';
-        return '¡Hola! ¿Qué asignatura deseas inscribir? (por ejemplo: "Inglés II sección A" o "ING-102 A")';
+        const msgAgregar = '¡Hola! ¿Qué asignatura deseas inscribir? (por ejemplo: "Inglés II sección A" o "ING-102 A")';
+        this.conversationHistory.push({ role: 'assistant', content: msgAgregar });
+        return msgAgregar;
+
       default:
         this.reset();
-        return '¿Quieres **organizar tu horario**, **consultar ubicación** o **añadir una asignatura**?';
+        const msgDefault = '¿Quieres **organizar tu horario**, **consultar ubicación** o **añadir una asignatura**?';
+        this.conversationHistory.push({ role: 'assistant', content: msgDefault });
+        return msgDefault;
     }
   }
 
@@ -59,85 +96,146 @@ export class ChatService {
     const raw = (userMessage || '').trim();
     const t = this.norm(raw);
 
-    // 🔧 Logs de debug (puedes comentarlos después)
-    console.log('[ChatService] 🎯 Mensaje:', raw);
+    console.log('[ChatService] ═══════════════════════════════════════════════════════');
+    console.log('[ChatService] 🎯 Mensaje usuario:', raw);
     console.log('[ChatService] 📝 Normalizado:', t);
-    console.log('[ChatService] 🔄 Flow:', this.flow);
-    console.log('[ChatService] 📍 Step:', this.step);
+    console.log('[ChatService] 🔄 Flow actual:', this.flow);
+    console.log('[ChatService] 📍 Step actual:', this.step);
+    console.log('[ChatService] ═══════════════════════════════════════════════════════');
 
-    // Comandos para reiniciar rápido
-    if (this.includesAny(t, ['cancelar', 'reiniciar', 'reset', 'volver'])) {
+    this.conversationHistory.push({ role: 'user', content: raw });
+
+    // ========== PRIORIDAD 0: Cancelar/Reiniciar ==========
+    if (this.matchesSynonym(t, 'cancelar')) {
+      console.log('[ChatService] 🚫 Comando de cancelar detectado');
       this.reset();
-      return 'Listo, reinicié la conversación. ¿Quieres **organizar tu horario**, **consultar ubicación** o **añadir una asignatura**?';
+      const msg = 'Listo, reinicié la conversación. ¿Quieres **organizar tu horario**, **consultar ubicación** o **añadir una asignatura**?';
+      this.conversationHistory.push({ role: 'assistant', content: msg });
+      return msg;
     }
 
-    // -------- PRIMERA PRIORIDAD: ¿el mensaje trae una NUEVA intención fuerte? --------
-    const wantsOrganizar = this.isOrganizarIntent(t);
-    const wantsUbicacion = this.isUbicacionIntent(t);
-    const wantsAgregar = this.isAgregarIntent(t);
-    
-    if (wantsOrganizar || wantsUbicacion || wantsAgregar) {
+    // ========== PRIORIDAD 1: Detectar intención FUERTE ==========
+    const detectedIntention = this.detectMainIntention(t);
+    console.log('[ChatService] 🧠 Intención detectada:', detectedIntention);
+
+    if (detectedIntention === 'organizar' && this.flow !== 'organizar') {
+      console.log('[ChatService] 🔀 Cambiando a flujo: organizar');
+      this.flow = 'organizar';
       this.step = 'none';
-      if (wantsOrganizar) {
-        this.flow = 'organizar';
-        return await this.handleOrganizarStart();
-      }
-      if (wantsUbicacion) {
-        this.flow = 'ubicacion';
-        return this.handleUbicacionStart(raw);
-      }
-      if (wantsAgregar) {
-        this.flow = 'agregar';
-        return await this.handleAgregarStart(raw);
-      }
+      const msg = await this.handleOrganizarStart();
+      this.conversationHistory.push({ role: 'assistant', content: msg });
+      return msg;
     }
 
-    // -------- SEGUNDA PRIORIDAD: si hay un paso pendiente, lo atendemos --------
+    if (detectedIntention === 'ubicacion' && this.flow !== 'ubicacion') {
+      console.log('[ChatService] 🔀 Cambiando a flujo: ubicacion');
+      this.flow = 'ubicacion';
+      this.step = 'ubicacion.awaiting_sedes';
+      const msg = this.handleUbicacionStart(raw);
+      this.conversationHistory.push({ role: 'assistant', content: msg });
+      return msg;
+    }
+
+    if (detectedIntention === 'agregar' && this.flow !== 'agregar') {
+      console.log('[ChatService] 🔀 Cambiando a flujo: agregar');
+      this.flow = 'agregar';
+      this.step = 'none';
+      const msg = await this.handleAgregarStart(raw);
+      this.conversationHistory.push({ role: 'assistant', content: msg });
+      return msg;
+    }
+
+    // ========== PRIORIDAD 2: Manejar step pendiente ==========
     if (this.step === 'organizar.awaiting_choice') {
-      return this.handleOrganizarChoice(t);
+      console.log('[ChatService] 📌 Manejando: organizar.awaiting_choice');
+      const msg = this.handleOrganizarChoice(t);
+      this.conversationHistory.push({ role: 'assistant', content: msg });
+      return msg;
     }
+
     if (this.step === 'organizar.awaiting_prefs') {
-      return this.handleOrganizarPrefs(raw);
+      console.log('[ChatService] 📌 Manejando: organizar.awaiting_prefs');
+      const msg = this.handleOrganizarPrefs(raw);
+      this.conversationHistory.push({ role: 'assistant', content: msg });
+      return msg;
     }
+
+    // ⭐ NUEVO: Manejar decisión de borrador/manual
+    if (this.step === 'organizar.awaiting_prefs_decision') {
+      console.log('[ChatService] 📌 Manejando: organizar.awaiting_prefs_decision');
+      const msg = await this.handleOrganizarPrefsDecision(t);
+      this.conversationHistory.push({ role: 'assistant', content: msg });
+      return msg;
+    }
+
+    // ⭐ NUEVO: Manejar confirmación del borrador
+    if (this.step === 'organizar.awaiting_borrador_confirm') {
+      console.log('[ChatService] 📌 Manejando: organizar.awaiting_borrador_confirm');
+      const msg = await this.handleBorradorConfirm(t);
+      this.conversationHistory.push({ role: 'assistant', content: msg });
+      return msg;
+    }
+
     if (this.step === 'ubicacion.awaiting_sedes') {
-      return this.handleUbicacionFollowup(raw);
+      console.log('[ChatService] 📌 Manejando: ubicacion.awaiting_sedes');
+      const msg = this.handleUbicacionFollowup(raw);
+      this.conversationHistory.push({ role: 'assistant', content: msg });
+      return msg;
     }
+
     if (this.step === 'agregar.awaiting_confirm') {
-      return await this.handleAgregarConfirm(t);
+      console.log('[ChatService] 📌 Manejando: agregar.awaiting_confirm');
+      const msg = await this.handleAgregarConfirm(t);
+      this.conversationHistory.push({ role: 'assistant', content: msg });
+      return msg;
     }
 
-    // -------- Fallback (sin contexto) --------
-    return 'Te ayudo con eso. ¿Quieres **organizar tu horario**, **consultar ubicación** o **añadir una asignatura**?';
+    // ========== FALLBACK ==========
+    console.log('[ChatService] ⚠️  Sin contexto, retornando fallback');
+    const fallback = 'Te ayudo con eso. ¿Quieres **organizar tu horario**, **consultar ubicación** o **añadir una asignatura**?';
+    this.conversationHistory.push({ role: 'assistant', content: fallback });
+    return fallback;
   }
 
-  // ====== Detectores de intención (arranque) ======
-  private isOrganizarIntent(t: string): boolean {
-    return this.includesAny(t, ['organiza', 'organices', 'horario']);
-  }
-
-  private isUbicacionIntent(t: string): boolean {
-    return this.includesAny(t, ['distancia', 'ubicacion', 'ubicación', 'sede', 'sedes']);
-  }
-  
-  // 🔧 CORREGIDO: Mejorada detección de intención
-  private isAgregarIntent(t: string): boolean {
-    // Primero verificamos frases completas (más específicas)
-    if (this.includesAny(t, [
-      'quiero agregar', 'quiero inscribir', 'quiero anadir', 'quiero añadir',
-      'deseo agregar', 'deseo inscribir', 'necesito agregar', 'necesito inscribir'
-    ])) {
-      return true;
+  // ====== DETECTORES DE INTENCIÓN (sin cambios) ======
+  private detectMainIntention(t: string): string | null {
+    if (this.matchesSynonym(t, 'cancelar')) {
+      return 'cancelar';
     }
-    
-    // Luego verificamos palabras clave solas
-    return this.includesAny(t, [
-      'agregar', 'anadir', 'añadir',      // infinitivos
-      'agrega', 'anade', 'añade',         // conjugados
-      'inscribir', 'inscribe', 'inscribi' // inscripción
-    ]);
+    if (this.matchesSynonym(t, 'organizar')) {
+      console.log('[detectMainIntention] ✓ Detectada intención: organizar');
+      return 'organizar';
+    }
+    if (this.matchesSynonym(t, 'ubicacion')) {
+      console.log('[detectMainIntention] ✓ Detectada intención: ubicacion');
+      return 'ubicacion';
+    }
+    if (this.matchesSynonym(t, 'agregar')) {
+      console.log('[detectMainIntention] ✓ Detectada intención: agregar');
+      return 'agregar';
+    }
+    return null;
   }
 
-  // ====== ORGANIZAR ======
+  private matchesSynonym(t: string, category: keyof typeof this.SYNONYMS): boolean {
+    const synonyms = this.SYNONYMS[category];
+    const found = synonyms.some(syn => t.includes(this.norm(syn)));
+    if (found) {
+      console.log(`[matchesSynonym] "${category}" encontrado en: "${t}"`);
+    }
+    return found;
+  }
+
+  private isConfirming(t: string): boolean {
+    return this.matchesSynonym(t, 'confirmar');
+  }
+
+  private isRejecting(t: string): boolean {
+    return this.matchesSynonym(t, 'rechazar');
+  }
+
+  // ====== FLUJO: ORGANIZAR ======
+
   private async handleOrganizarStart(): Promise<string> {
     const student: UserData | null = this.auth.getUser();
 
@@ -171,18 +269,19 @@ export class ChatService {
   }
 
   private handleOrganizarChoice(t: string): string {
-    const isAuto = this.includesAny(t, [
-      'auto', 'automatica', 'automático', 'automatico',
-      'propuesta automatica', 'propuesta automática'
-    ]);
+    const isAuto = this.matchesSynonym(t, 'confirmar') || 
+                   this.includesAny(t, ['auto', 'automatica', 'automático', 'automatico', 'propuesta']);
+
     const isManual = this.includesAny(t, ['manual', 'manualmente']);
 
-    if (isAuto || t === 'si' || t === 'sí') {
+    if (isAuto) {
+      console.log('[handleOrganizarChoice] ✓ Usuario eligió: automático');
       this.step = 'organizar.awaiting_prefs';
       return 'Perfecto, generaré una propuesta **automática** sin choques y respetando prerequisitos. ¿Tienes preferencias? (ej: "menos carga", "evitar traslados", "sin clases viernes"). Si prefieres **manual**, dímelo ahora.';
     }
 
     if (isManual) {
+      console.log('[handleOrganizarChoice] ✓ Usuario eligió: manual');
       this.step = 'none';
       return 'Genial. Abre el **Catálogo** y ve agregando. Si quieres, te aviso si hay choques o prerequisitos incumplidos mientras avanzas.';
     }
@@ -190,36 +289,379 @@ export class ChatService {
     return '¿Prefieres **propuesta automática** o **construir manualmente**?';
   }
 
+  // ⭐ MODIFICADO: Ya no pone step en 'none'
   private handleOrganizarPrefs(raw: string): string {
-    this.step = 'none';
+    console.log('[handleOrganizarPrefs] Preferencias anotadas:', raw);
+    
+    // Guardamos las preferencias
+    this.userPrefs = raw;
+    
+    // ⭐ CLAVE: Mantener step para esperar decisión sobre borrador/manual
+    this.step = 'organizar.awaiting_prefs_decision';
+    
     return `Anotado: "${raw}". Generaré una propuesta considerando eso (demo). ¿Quieres que te muestre el **borrador** o agregar ramos **manual** ahora?`;
   }
 
-  // ====== UBICACIÓN / DISTANCIA ======
+  // ⭐ NUEVO: Maneja decisión entre borrador/manual
+  /**
+   * Maneja la decisión entre "borrador" o "manual" después de preferencias.
+   * 
+   * Si elige "borrador", genera una propuesta y la muestra.
+   * Si elige "manual", le dice que vaya al catálogo.
+   */
+  private async handleOrganizarPrefsDecision(t: string): Promise<string> {
+    console.log('[handleOrganizarPrefsDecision] Usuario respondió:', t);
+
+    // Si quiere ver borrador
+    const wantsBorrador = this.includesAny(t, [
+      'borrador', 'muestra', 'mostrar', 'ver', 'display',
+      'propuesta', 'show', 'dame', 'enseña', 'si', 'sí'
+    ]);
+
+    // Si quiere agregar manual
+    const wantsManual = this.includesAny(t, [
+      'manual', 'manualmente', 'yo mismo', 'agregar', 'añadir',
+      'voy a', 'me encargo', 'construir', 'no'
+    ]);
+
+    if (wantsBorrador) {
+      console.log('[handleOrganizarPrefsDecision] ✓ Usuario quiere ver borrador');
+      
+      // ⭐ AQUÍ: Generar propuesta automática
+      await this.generateBorrador();
+      
+      // Mostrar borrador
+      this.step = 'organizar.awaiting_borrador_confirm';
+      return this.formatBorrador();
+    }
+
+    if (wantsManual) {
+      console.log('[handleOrganizarPrefsDecision] ✓ Usuario quiere manual');
+      this.step = 'none';
+      return 'Perfecto. Abre el **Catálogo** y ve agregando ramos manualmente. Estaré atento a **choques** o **prerequisitos** incumplidos. ¿Comenzamos?';
+    }
+
+    return '¿Quieres ver el **borrador** o prefieres **agregar manual**?';
+  }
+
+  // ⭐ NUEVO: Genera el borrador basado en catálogo + preferencias
+  /**
+   * LÓGICA:
+   * 1. Obtiene el catálogo completo
+   * 2. Filtra asignaturas según:
+   *    - Cumplan prerequisitos
+   *    - No haya conflictos de horario
+   *    - Considere las preferencias (ej: "evitar viernes")
+   * 3. Guarda en this.borradorPropuesto
+   */
+  private async generateBorrador(): Promise<void> {
+  try {
+    console.log('[generateBorrador] 🔨 Generando borrador automático...');
+    
+    const response = await firstValueFrom(this.asignaturas.getMiCatalogo());
+    let candidatos: Asignatura[] = response.data || [];
+
+    console.log('[generateBorrador] 📚 Candidatos iniciales:', candidatos.length);
+
+    // Filtro 1: Verificar prerequisitos
+    const conPrereqs = await Promise.all(
+      candidatos.map(async (asig) => {
+        try {
+          const resPrereq = await firstValueFrom(this.requisitos.verificar(asig.sigla));
+          return {
+            asignatura: asig,
+            cumpleRequisitos: resPrereq.data?.met_all ?? false
+          };
+        } catch {
+          return { asignatura: asig, cumpleRequisitos: false };
+        }
+      })
+    );
+
+    const sinChoquesPrereq = conPrereqs
+      .filter(item => item.cumpleRequisitos)
+      .map(item => item.asignatura);
+
+    console.log('[generateBorrador] ✓ Con prerequisitos:', sinChoquesPrereq.length);
+
+    // Filtro 2: Considerar preferencias
+    let propuesta = sinChoquesPrereq;
+
+    if (this.userPrefs.toLowerCase().includes('viernes')) {
+      propuesta = propuesta.filter(asig => {
+        const tieneViernes = asig.secciones?.some(sec =>
+          sec.bloques?.some(bloque => bloque.dia?.toUpperCase() === 'VIE')
+        );
+        return !tieneViernes;
+      });
+      console.log('[generateBorrador] 🗑️  Eliminadas con viernes:', sinChoquesPrereq.length - propuesta.length);
+    }
+
+    // ⭐ FILTRO 3 NUEVO: Verificar choques
+    console.log('[generateBorrador] 🔍 Verificando choques...');
+    
+    const sinChoques: Asignatura[] = [];
+    
+    for (const asig of propuesta) {
+      const hayChoque = await this.checkHorarioChoque(asig, sinChoques);
+      
+      if (!hayChoque) {
+        console.log(`[generateBorrador] ✓ OK: ${asig.nombre}`);
+        sinChoques.push(asig);
+      }
+    }
+
+    this.borradorPropuesto = sinChoques.slice(0, 6);
+
+    console.log('[generateBorrador] ✅ Borrador final:', this.borradorPropuesto.length);
+    
+  } catch (error) {
+    console.error('[generateBorrador] ❌ Error:', error);
+    this.borradorPropuesto = [];
+  }
+}
+
+  // ⭐ NUEVO: Formatea el borrador para mostrar al usuario
+  /**
+   * Retorna un string bonito mostrando:
+   * - Nombre de las asignaturas
+   * - Secciones disponibles
+   * - Horarios
+   */
+  private formatBorrador(): string {
+    if (this.borradorPropuesto.length === 0) {
+      return 'No pude generar una propuesta. Intenta con preferencias diferentes o **construye manual**.';
+    }
+
+    let msg = '📋 **BORRADOR DE TU HORARIO**\n\nTe propongo estas asignaturas según tu avance y preferencias:\n\n';
+
+    this.borradorPropuesto.forEach((asig, index) => {
+      const sigla = asig.sigla;
+      const nombre = asig.nombre;
+      const seccion = asig.secciones?.[0]?.seccion || '?';
+      
+      msg += `${index + 1}. **${nombre}** (${sigla}-${seccion})\n`;
+      
+      // Mostrar horario de la primera sección
+      if (asig.secciones?.[0]?.bloques) {
+        asig.secciones[0].bloques.forEach(bloque => {
+          msg += `   • ${bloque.dia} ${bloque.hora_inicio}-${bloque.hora_fin} (${bloque.sede})\n`;
+        });
+      }
+      
+      msg += '\n';
+    });
+
+    msg += '---\n\n¿Quieres **confirmar este borrador** (agregará todos estos ramos)? O prefieres **modificarlo manualmente**?\n\n(Responde "sí" para confirmar o "no" para cambiar)';
+
+    return msg;
+  }
+
+  // ⭐ NUEVO: Confirma y agrega todas las asignaturas del borrador
+  /**
+   * Cuando el usuario dice "sí" al borrador:
+   * 1. Agrega TODAS las asignaturas del borrador al horario
+   * 2. Guarda en backend y HorarioService
+   * 3. Muestra confirmación
+   */
+  private async handleBorradorConfirm(t: string): Promise<string> {
+  console.log('[handleBorradorConfirm] Usuario respondió:', t);
+
+  if (this.isConfirming(t)) {
+    console.log('[handleBorradorConfirm] ✅ Usuario confirmó');
+
+    if (this.borradorPropuesto.length === 0) {
+      this.step = 'none';
+      return 'No hay asignaturas para confirmar.';
+    }
+
+    try {
+      const agregadas: string[] = [];
+      const conChoques: Array<{ asig: string; conflictos: string }> = [];
+      const conErrores: string[] = [];
+
+      for (const asig of this.borradorPropuesto) {
+        try {
+          console.log(`[handleBorradorConfirm] 🔄 Agregando: ${asig.nombre}`);
+          
+          // Guardar en backend
+          await firstValueFrom(this.progreso.updateProgreso(asig.sigla, 'pendiente'));
+
+          // Guardar en horario
+          const response = await firstValueFrom(this.asignaturas.getBySigla(asig.sigla));
+          const asigCompleta = response.data;
+
+          if (asigCompleta?.secciones?.[0]) {
+            const primeraSeccion = asigCompleta.secciones[0];
+            const code = `${asig.sigla}-${primeraSeccion.seccion}`;
+            const tipo = asigCompleta.tipo || 'Obligatorio';
+            const campus = primeraSeccion.bloques?.[0]?.sede || '';
+            
+            const slots: string[] = [];
+            for (const b of primeraSeccion.bloques || []) {
+              const diaMap: Record<string, string> = {
+                'LUN': 'Lunes', 'MAR': 'Martes', 'MIE': 'Miércoles',
+                'JUE': 'Jueves', 'VIE': 'Viernes', 'SAB': 'Sábado'
+              };
+              const dia = diaMap[b.dia?.toUpperCase()] || b.dia || '';
+              const inicio = b.clave_ini || '1';
+              const fin = b.clave_fin || inicio;
+              slots.push(`${dia} ${inicio}-${fin}`);
+            }
+
+            // ⭐ USA TU HORARIOSERVICE DIRECTAMENTE
+            const result = this.horario.addFromCatalog(code, tipo, campus, slots);
+            
+            if (result.ok) {
+              agregadas.push(asig.nombre);
+              console.log(`[handleBorradorConfirm] ✅ ${asig.nombre}`);
+            } else {
+              // ⭐ NUEVO: Reportar conflictos específicamente
+              const scheduleConflicts = result.error.filter((e: any) => e.type === 'schedule');
+              const transportConflicts = result.error.filter((e: any) => e.type === 'transport');
+
+              let descripcion = '';
+              if (scheduleConflicts.length > 0) {
+                descripcion += `Choque: ${scheduleConflicts.map((c: any) => `${c.day} bloque ${c.block}`).join(', ')}`;
+              }
+              if (transportConflicts.length > 0) {
+                descripcion += `${descripcion ? ' + ' : ''}Traslado: ${transportConflicts.map((c: any) => `${c.from} → ${c.to}`).join(', ')}`;
+              }
+
+              conChoques.push({ asig: asig.nombre, conflictos: descripcion });
+              console.log(`[handleBorradorConfirm] ⚠️  Conflicto: ${asig.nombre}`);
+            }
+          }
+        } catch (error) {
+          console.error(`[handleBorradorConfirm] ❌ Error en ${asig.nombre}:`, error);
+          conErrores.push(asig.nombre);
+        }
+      }
+
+      this.borradorPropuesto = [];
+      this.step = 'none';
+
+      // Construir respuesta
+      let respuesta = '';
+
+      if (agregadas.length > 0) {
+        respuesta += `✅ **Agregadas ${agregadas.length}:**\n`;
+        agregadas.forEach(a => respuesta += `• ${a}\n`);
+        respuesta += '\n';
+      }
+
+      if (conChoques.length > 0) {
+        respuesta += `⚠️  **${conChoques.length} con conflicto:**\n`;
+        conChoques.forEach(c => respuesta += `• ${c.asig}\n  └─ ${c.conflictos}\n`);
+        respuesta += '\n';
+      }
+
+      if (conErrores.length > 0) {
+        respuesta += `❌ **${conErrores.length} con error:**\n`;
+        conErrores.forEach(e => respuesta += `• ${e}\n`);
+        respuesta += '\n';
+      }
+
+      respuesta += `Puedes verlas en **Horario** 📅.\n\n¿Quieres **agregar más** o **finalizar**?`;
+
+      return respuesta;
+
+    } catch (error) {
+      console.error('[handleBorradorConfirm] ❌ Error fatal:', error);
+      this.step = 'none';
+      return `Error al guardar: ${error instanceof Error ? error.message : ''}`;
+    }
+  }
+
+  if (this.isRejecting(t)) {
+    this.borradorPropuesto = [];
+    this.step = 'none';
+    return '👍 Sin problema. ¿**Manual** desde catálogo o **volver a intentar**?';
+  }
+
+  return '¿Confirmar este borrador? (sí/no)';
+}
+
+private async checkHorarioChoque(
+  asignatura: Asignatura,
+  borradorActual: Asignatura[]
+): Promise<boolean> {
+  try {
+    const response = await firstValueFrom(this.asignaturas.getBySigla(asignatura.sigla));
+    const asigCompleta = response.data;
+    
+    if (!asigCompleta?.secciones?.[0]) {
+      return false;
+    }
+
+    const primeraSeccion = asigCompleta.secciones[0];
+    const code = `${asignatura.sigla}-${primeraSeccion.seccion}`;
+    const tipo = asigCompleta.tipo || 'Obligatorio';
+    const campus = primeraSeccion.bloques?.[0]?.sede || '';
+    
+    const slots: string[] = [];
+    for (const b of primeraSeccion.bloques || []) {
+      const diaMap: Record<string, string> = {
+        'LUN': 'Lunes', 'MAR': 'Martes', 'MIE': 'Miércoles',
+        'JUE': 'Jueves', 'VIE': 'Viernes', 'SAB': 'Sábado'
+      };
+      const dia = diaMap[b.dia?.toUpperCase()] || b.dia || '';
+      const inicio = b.clave_ini || '1';
+      const fin = b.clave_fin || inicio;
+      slots.push(`${dia} ${inicio}-${fin}`);
+    }
+
+    // ⭐ VERIFICA CON TU HORARIOSERVICE
+    const result = this.horario.addFromCatalog(code, tipo, campus, slots);
+
+    if (!result.ok) {
+      console.log(`[checkHorarioChoque] ❌ Conflicto: ${asignatura.nombre}`);
+      return true;
+    }
+
+    // ⭐ SI NO TIENE CONFLICTO, DESHACER LA ADICIÓN (fue solo verificación)
+    this.horario.removeByCode(code);
+
+    return false;
+
+  } catch (error) {
+    console.error('[checkHorarioChoque] ❌ Error:', error);
+    return false;
+  }
+}
+
+  // ====== FLUJO: UBICACIÓN / DISTANCIA (sin cambios) ======
   private handleUbicacionStart(raw: string): string {
+    console.log('[handleUbicacionStart] Buscando sedes en:', raw);
     const sedes = this.detectSedes(raw);
+    
     if (sedes.length >= 2) {
       const km = this.distanceKm(sedes[0], sedes[1]);
       this.step = 'none';
       return `Entre **${sedes[0]}** y **${sedes[1]}** hay aprox. **${km} km** (ruta usual). ¿Quieres sugerencias de traslado entre bloques?`;
     }
+
     if (sedes.length === 1) {
       this.sedeOrigen = sedes[0];
       this.step = 'ubicacion.awaiting_sedes';
       const otras = this.CAMPUSES.filter(s => s !== this.sedeOrigen).join(', ');
       return `Ok, ¿contra qué sede comparo **${this.sedeOrigen}**? (Opciones: ${otras})`;
     }
+
     this.step = 'ubicacion.awaiting_sedes';
     return '¡Hola! ¿De qué sedes quieres saber la **ubicación o distancia**? (por ejemplo: "Sausalito y Casa Central")';
   }
 
   private handleUbicacionFollowup(raw: string): string {
+    console.log('[handleUbicacionFollowup] Procesando seguimiento:', raw);
     const sedes = this.detectSedes(raw);
+
     if (sedes.length >= 2) {
       this.step = 'none';
       const km = this.distanceKm(sedes[0], sedes[1]);
       return `Entre **${sedes[0]}** y **${sedes[1]}** hay aprox. **${km} km** (ruta usual). ¿Quieres sugerencias de traslado entre bloques?`;
     }
+
     if (sedes.length === 1 && this.sedeOrigen && sedes[0] !== this.sedeOrigen) {
       this.step = 'none';
       const km = this.distanceKm(this.sedeOrigen, sedes[0]);
@@ -228,6 +670,7 @@ export class ChatService {
       this.sedeOrigen = undefined;
       return `Entre **${a}** y **${b}** hay aprox. **${km} km** (ruta usual). ¿Quieres sugerencias de traslado entre bloques?`;
     }
+
     const otras = this.CAMPUSES.filter(s => s !== this.sedeOrigen).join(', ');
     return `Necesito dos sedes. Por ejemplo: "${this.sedeOrigen ?? 'Sausalito'} y Casa Central". (Opciones: ${otras})`;
   }
@@ -246,6 +689,7 @@ export class ChatService {
     for (const s of this.CAMPUSES) {
       if (t.includes(this.norm(s))) found.push(s);
     }
+    console.log('[detectSedes] Detectadas:', found);
     return [...new Set(found)];
   }
 
@@ -255,15 +699,11 @@ export class ChatService {
     return this.DISTANCES[b]?.[a] ?? 0;
   }
 
-  // ====================================================================
-  // --- SECCIÓN "AGREGAR ASIGNATURA" ---
-  // ====================================================================
-
-  // 🔧 CORREGIDO: Validación mejorada
+  // ====== FLUJO: AGREGAR ASIGNATURA (sin cambios principales) ======
   private async handleAgregarStart(raw: string): Promise<string> {
     const cleanQuery = this.cleanSearchQuery(raw);
     
-    console.log('[ChatService] 🔍 Query limpio:', cleanQuery);
+    console.log('[handleAgregarStart] 🔍 Query limpio:', cleanQuery);
     
     if (cleanQuery.length < 2) {
       this.step = 'none';
@@ -274,21 +714,22 @@ Intenta con: "agregar Inglés II" o "inscribir INF-123"`;
     let results: Asignatura[] = [];
     try {
       const response = await firstValueFrom(this.asignaturas.buscar(cleanQuery));
-      results = response.data || []; // 🔧 AÑADIDO: fallback si data es undefined
+      results = response.data || [];
+      console.log('[handleAgregarStart] ✓ Búsqueda exitosa, resultados:', results.length);
     } catch (error) {
-      console.error('Error al buscar asignatura:', error);
+      console.error('❌ Error al buscar asignatura:', error);
       this.step = 'none';
       return 'Lo siento, tuve un error al buscar en el catálogo. Intenta de nuevo.';
     }
 
-    // CASO 0: No se encontró nada
     if (results.length === 0) {
+      console.log('[handleAgregarStart] ⚠️  Sin resultados para:', cleanQuery);
       this.step = 'none';
       return `No encontré ninguna asignatura que coincida con "${cleanQuery}". Intenta con la sigla o un nombre diferente.`;
     }
 
-    // CASO 1: ¡Éxito! Un solo resultado.
     if (results.length === 1) {
+      console.log('[handleAgregarStart] ✓ Un único resultado encontrado');
       const asignatura = results[0];
       const sigla = asignatura.sigla;
 
@@ -302,17 +743,19 @@ Intenta con: "agregar Inglés II" o "inscribir INF-123"`;
           firstValueFrom(this.requisitos.verificar(sigla))
         ]);
 
-        const secciones = resHorario.data?.secciones || []; // 🔧 AÑADIDO: optional chaining
+        const secciones = resHorario.data?.secciones || [];
         if (secciones.length > 0) {
           horarioMsg = this.formatHorarios(secciones);
         }
 
         const verificacion = resPrereq.data;
-        prereqMsg = verificacion?.message || 'No se pudo verificar'; // 🔧 AÑADIDO: optional chaining
-        puedeInscribir = verificacion?.met_all || false; // 🔧 AÑADIDO: fallback
+        prereqMsg = verificacion?.message || 'No se pudo verificar';
+        puedeInscribir = verificacion?.met_all || false;
+
+        console.log('[handleAgregarStart] ✓ Prerequisitos verificados, puede inscribir:', puedeInscribir);
 
       } catch (error) {
-        console.error('Error al obtener detalles de asignatura o prerrequisitos:', error);
+        console.error('❌ Error al obtener detalles de asignatura o prerrequisitos:', error);
         prereqMsg = '❌ Error al verificar prerrequisitos.';
         horarioMsg = 'Error al cargar secciones.';
       }
@@ -329,31 +772,28 @@ Intenta con: "agregar Inglés II" o "inscribir INF-123"`;
       return `¡Encontré 1 resultado! **${asignatura.nombre} (${sigla})**.\n\n${prereqMsg}\n\nSecciones disponibles:\n${horarioMsg}\n\n¿Deseas **añadirlo al borrador** del horario? (sí/no)`;
     }
 
-    // CASO 2: Varios resultados (lista corta)
     if (results.length <= 5) {
+      console.log('[handleAgregarStart] ⚠️  Múltiples resultados ambiguos:', results.length);
       this.step = 'none';
       const lista = results.map(a => `• ${a.nombre} (${a.sigla})`).join('\n');
       return `Tu búsqueda "${cleanQuery}" es ambigua. Encontré ${results.length} resultados:\n${lista}\n\nPor favor, sé más específico (ej: "agregar ${results[0].sigla}")`;
     }
 
-    // CASO 3: Demasiados resultados
+    console.log('[handleAgregarStart] ⚠️  Demasiados resultados:', results.length);
     this.step = 'none';
     return `Tu búsqueda "${cleanQuery}" es muy general. Encontré más de ${results.length} resultados. Por favor, sé más específico (intenta con la sigla).`;
   }
 
   private async handleAgregarConfirm(t: string): Promise<string> {
     console.log('═══════════════════════════════════════════════════════════════');
-    console.log('[handleAgregarConfirm] 🎯 INICIO');
-    console.log('[handleAgregarConfirm] Usuario respondió:', t);
+    console.log('[handleAgregarConfirm] 🎯 INICIO - Usuario respondió:', t);
     console.log('═══════════════════════════════════════════════════════════════');
 
-    const esAfirmativo = ['si', 'sí', 's', 'yes', 'ok', 'dale', 'claro', 'sep'];
-
-    if (esAfirmativo.includes(t)) {
-      console.log('[handleAgregarConfirm] ✅ Usuario confirmó');
+    if (this.isConfirming(t)) {
+      console.log('[handleAgregarConfirm] ✅ Usuario confirmó con:', t);
 
       if (!this.pendingAsignatura) {
-        console.error('[handleAgregarConfirm] ❌ pendingAsignatura es null');
+        console.error('[handleAgregarConfirm] ❌ ERROR: pendingAsignatura es null');
         this.step = 'none';
         return 'Lo siento, ha ocurrido un error. Por favor, intenta buscar la asignatura de nuevo.';
       }
@@ -364,25 +804,20 @@ Intenta con: "agregar Inglés II" o "inscribir INF-123"`;
       try {
         const estadoAGuardar: ProgresoEstado = 'pendiente';
 
-        // PASO 1: Guardar en Backend
-        console.log('[handleAgregarConfirm] 🔄 Guardando en Backend...');
+        console.log('[handleAgregarConfirm] 🔄 Guardando en Backend con estado:', estadoAGuardar);
         await firstValueFrom(this.progreso.updateProgreso(sigla, estadoAGuardar));
         console.log('[handleAgregarConfirm] ✅ Backend OK');
 
-        // PASO 2: Guardar en HorarioService (localStorage)
         console.log('[handleAgregarConfirm] 🔄 Guardando en HorarioService...');
 
-        // Obtenemos la info completa con secciones
         const response = await firstValueFrom(this.asignaturas.getBySigla(sigla));
         const asignaturaCompleta = response.data;
 
         if (asignaturaCompleta?.secciones && asignaturaCompleta.secciones.length > 0) {
           const primeraSeccion = asignaturaCompleta.secciones[0];
 
-          // Construimos el código completo (ej: "INF-2241-01")
           const code = `${sigla}-${primeraSeccion.seccion}`;
 
-          // Mapeamos el tipo
           const tipo = asignaturaCompleta.tipo || '';
           let kindText = 'Obligatorio';
           if (tipo.toLowerCase().includes('fofu')) kindText = 'FoFu';
@@ -391,10 +826,8 @@ Intenta con: "agregar Inglés II" o "inscribir INF-123"`;
             kindText = 'Electivo';
           }
 
-          // Extraemos la sede
           const campus = primeraSeccion.bloques?.[0]?.sede || '';
 
-          // Convertimos los bloques a slots (formato: ["Lunes 1-2", "Martes 3-4"])
           const slots: string[] = [];
           for (const b of primeraSeccion.bloques || []) {
             const diaMap: Record<string, string> = {
@@ -411,9 +844,8 @@ Intenta con: "agregar Inglés II" o "inscribir INF-123"`;
             slots.push(`${dia} ${inicio}-${fin}`);
           }
 
-          console.log('[handleAgregarConfirm] 📦 Datos:', { code, kindText, campus, slots });
+          console.log('[handleAgregarConfirm] 📦 Datos a guardar:', { code, kindText, campus, slots });
 
-          // Guardamos en HorarioService
           const result = this.horario.addFromCatalog(code, kindText, campus, slots);
 
           if (result.ok) {
@@ -436,9 +868,10 @@ Intenta con: "agregar Inglés II" o "inscribir INF-123"`;
 Puedes verlo en la pestaña **Horario** 📅.
 
 ¿Quieres **agregar otro** ramo?`;
+
       } catch (error) {
         console.error('═══════════════════════════════════════════════════════════════');
-        console.error('[handleAgregarConfirm] ❌ ERROR:', error);
+        console.error('[handleAgregarConfirm] ❌ ERROR FATAL:', error);
         console.error('═══════════════════════════════════════════════════════════════');
 
         this.pendingAsignatura = null;
@@ -452,55 +885,70 @@ ${error instanceof Error ? error.message : 'Error desconocido'}
       }
     }
 
-    const esNegativo = ['no', 'n', 'nop', 'nope', 'nel'];
-    if (esNegativo.includes(t)) {
+    if (this.isRejecting(t)) {
+      console.log('[handleAgregarConfirm] ❌ Usuario rechazó con:', t);
       this.pendingAsignatura = null;
       this.step = 'none';
       return 'Sin problema. ¿Quieres revisar otro ramo o finalizar?';
     }
 
+    console.log('[handleAgregarConfirm] ⚠️  Respuesta no reconocida:', t);
     return '¿Quieres que lo añada al borrador? (responde "sí" o "no")';
   }
 
-  // ====== Utils ======
+  // ====== UTILIDADES ======
+
   private reset(): void {
+    console.log('[reset] 🔄 Reseteando estado completo');
     this.flow = 'none';
     this.step = 'none';
     this.pendingAsignatura = null;
     this.sedeOrigen = undefined;
+    this.borradorPropuesto = [];
+    this.userPrefs = '';
   }
 
-  // 🔧🔧🔧 ESTA ES LA CORRECCIÓN CRÍTICA 🔧🔧🔧
   private cleanSearchQuery(raw: string): string {
     let t = this.norm(raw);
     
-    console.log('[cleanSearchQuery] Input:', t);
+    console.log('[cleanSearchQuery] ═══════════════════════════════════════════');
+    console.log('[cleanSearchQuery] Input original:', raw);
+    console.log('[cleanSearchQuery] Input normalizado:', t);
     
-    // PASO 1: Detectamos patrones comunes y extraemos lo importante usando REGEX DE CAPTURA
-    
-    // Patrón: "quiero/deseo/necesito agregar/inscribir [ASIGNATURA]"
-    let match = t.match(/(?:quiero|deseo|necesito)\s+(?:agregar|inscribir|anadir|anade|agrega|añadir|añade)\s+(.+)/);
+    let match = t.match(/(?:quiero|deseo|necesito|debo|debe)\s+(?:agregar|inscribir|anadir|anade|agrega|añadir|añade|registrar|registra)\s+(.+)/);
     if (match) {
-      console.log('[cleanSearchQuery] Patrón 1 detectado:', match[1]);
+      console.log('[cleanSearchQuery] ✓ Patrón 1 detectado:', match[1]);
+      console.log('[cleanSearchQuery] ═══════════════════════════════════════════');
       return match[1].trim();
     }
     
-    // Patrón: "agregar/inscribir [ASIGNATURA]"
-    match = t.match(/(?:agregar|inscribir|anadir|anade|agrega|añadir|añade)\s+(.+)/);
+    match = t.match(/(?:agregar|inscribir|anadir|anade|agrega|añadir|añade|registrar|registra)\s+(.+)/);
     if (match) {
-      console.log('[cleanSearchQuery] Patrón 2 detectado:', match[1]);
+      console.log('[cleanSearchQuery] ✓ Patrón 2 detectado:', match[1]);
+      console.log('[cleanSearchQuery] ═══════════════════════════════════════════');
       return match[1].trim();
     }
     
-    // PASO 2: Si no hay patrón, limpiamos stopwords básicas SOLO (sin tocar verbos)
-    const stopwords = ['el', 'la', 'los', 'las', 'de', 'del', 'un', 'una',
-                       'ramo', 'asignatura', 'curso', 'materia', 'seccion'];
+    match = t.match(/^(.+)\s+(?:para inscribir|para agregar|para registrar)$/);
+    if (match) {
+      console.log('[cleanSearchQuery] ✓ Patrón 3 detectado:', match[1]);
+      console.log('[cleanSearchQuery] ═══════════════════════════════════════════');
+      return match[1].trim();
+    }
+    
+    console.log('[cleanSearchQuery] ⚠️  Sin patrón específico, limpiando stopwords');
+    const stopwords = [
+      'el', 'la', 'los', 'las', 'de', 'del', 'un', 'una',
+      'ramo', 'asignatura', 'curso', 'materia', 'seccion', 'sección',
+      'por favor', 'porfavor', 'me', 'te', 'quiero', 'deseo', 'necesito'
+    ];
     
     const palabras = t.split(/\s+/);
     const palabrasLimpias = palabras.filter(p => !stopwords.includes(p));
     
     const resultado = palabrasLimpias.join(' ').trim();
-    console.log('[cleanSearchQuery] Resultado:', resultado);
+    console.log('[cleanSearchQuery] ✓ Resultado limpio:', resultado);
+    console.log('[cleanSearchQuery] ═══════════════════════════════════════════');
     return resultado;
   }
 
@@ -535,5 +983,21 @@ ${error instanceof Error ? error.message : 'Error desconocido'}
 
   private includesAny(t: string, needles: string[]): boolean {
     return needles.some(n => t.includes(this.norm(n)));
+  }
+
+  getContext() {
+    return {
+      flow: this.flow,
+      step: this.step,
+      pendingAsignatura: this.pendingAsignatura,
+      sedeOrigen: this.sedeOrigen,
+      borradorPropuesto: this.borradorPropuesto,
+      userPrefs: this.userPrefs,
+      conversationHistory: this.conversationHistory
+    };
+  }
+
+  getConversationHistory() {
+    return this.conversationHistory;
   }
 }
