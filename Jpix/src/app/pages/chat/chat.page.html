@@ -1,23 +1,51 @@
 <ion-header>
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
     <ion-title>Chat con Jpix</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<!-- fullscreen="false" respeta headers/footers -->
+<ion-content [fullscreen]="false" class="chat-container" scrollEvents="true">
   <div class="chat-box">
-    <div class="chat-messages">
-      <div *ngFor="let message of assistantMessages" class="chat-message">
-        <p>{{ message }}</p>
+    <div class="chat-messages" #messagesContainer>
+      <div *ngFor="let message of assistantMessages" 
+           class="chat-message"
+           [class.user-message]="message.startsWith('Tú:')"
+           [class.jpix-message]="message.startsWith('Jpix:')"
+           [style.white-space]="'pre-line'">
+        <p [innerText]="message"></p>
       </div>
+      
+      <div #messagesEnd></div>
     </div>
   </div>
-
-  <!-- Campo para ingresar mensaje -->
-  <ion-item>
-    <ion-input [(ngModel)]="userMessage" placeholder="Escribe tu consulta" type="text"></ion-input>
-  </ion-item>
-
-  <!-- Botón para enviar mensaje -->
-  <ion-button expand="full" (click)="onSendMessage()">Enviar</ion-button>
 </ion-content>
+
+<!-- Footer solo en móvil (o siempre, según tu preferencia) -->
+<ion-footer>
+  <ion-toolbar>
+    <ion-item lines="none" class="input-item">
+      <ion-input 
+        [(ngModel)]="userMessage" 
+        placeholder="Escribe tu consulta" 
+        type="text"
+        (keyup.enter)="onSendMessage()"
+        [disabled]="loading"
+        class="chat-input">
+      </ion-input>
+
+      <ion-button 
+        slot="end" 
+        fill="clear" 
+        (click)="onSendMessage()" 
+        [disabled]="loading"
+        class="send-button">
+        <ion-spinner name="dots" *ngIf="loading"></ion-spinner>
+        <ion-icon name="send" *ngIf="!loading"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-toolbar>
+</ion-footer>

@@ -61,6 +61,24 @@ export class AsignaturasService {
     return this.http.get<ApiResponse<Asignatura[]>>(`${this.base}/mi-catalogo`);
   }
 
+  // ==============================================================
+  // --- INICIO: NUEVA FUNCIÓN PARA EL CHAT (PASO 1) ---
+  // ==============================================================
+  /**
+   * Llama al endpoint de búsqueda del backend.
+   * @param query Término de búsqueda (ej. "calculo" o "INF-100")
+   */
+  buscar(query: string): Observable<ApiResponse<Asignatura[]>> {
+    // Usamos encodeURIComponent para que el query sea seguro en una URL
+    // (ej. "base de datos" se convierte en "base%20de%20datos")
+    // El objeto 'params' se encargará de añadir ?q=... a la URL
+    const params = { q: query };
+    return this.http.get<ApiResponse<Asignatura[]>>(`${this.base}/buscar`, { params });
+  }
+  // ==============================================================
+  // --- FIN DE LA NUEVA FUNCIÓN ---
+  // ==============================================================
+
   // --- Métodos CRUD de Admin (Paso 1) ---
   create(data: AsignaturaPayload): Observable<ApiResponse<Asignatura>> {
     return this.http.post<ApiResponse<Asignatura>>(this.base, data);

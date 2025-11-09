@@ -22,6 +22,23 @@ router.get('/', asyncH(C.list));
  */
 router.get('/:id', asyncH(C.getOne));
 
+// ==============================================================
+// --- INICIO: NUEVA FUNCIÓN PARA EL CHAT (PASO 2) ---
+// ==============================================================
+/**
+ * @api {get} /api/v1/requisitos/verificar/:sigla
+ * @description Verifica si el usuario logueado CUMPLE los prerrequisitos de una asignatura.
+ * @access Estudiante (autenticado)
+ */
+router.get(
+  '/verificar/:sigla',
+  auth, // <-- ¡Importante! Necesita 'auth' para saber quién es 'req.user'
+  asyncH(C.verificar)
+);
+// ==============================================================
+// --- FIN DE LA NUEVA RUTA ---
+// ==============================================================
+
 /**
  * @api {post} /api/v1/requisitos/
  * @description Crea una nueva relación de requisito.

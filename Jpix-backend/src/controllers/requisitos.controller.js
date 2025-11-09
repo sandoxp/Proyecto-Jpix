@@ -1,9 +1,10 @@
 'use strict';
 
-// Importamos 'sequelize' para transacciones y 'Op' para búsquedas
-const { Requisito, Asignatura, sequelize } = require('../models');
+// ---
+// MODIFICADO: Añadimos ProgresoUsuario y Op para la nueva función 'verificar'
+// ---
+const { Requisito, Asignatura, ProgresoUsuario, sequelize, Op } = require('../models');
 const { ok, fail } = require('../utils/responses');
-const { Op } = require('sequelize');
 
 /**
  * Lista requisitos.
@@ -134,5 +135,92 @@ exports.remove = async (req, res, next) => {
 
   } catch (error) {
     next(error);
+  }
+};
+
+// ==============================================================
+// --- INICIO: NUEVA FUNCIÓN PARA EL CHAT (PASO 2) ---
+// ==============================================================
+/**
+ * @api {get} /api/v1/requisitos/verificar/:sigla
+ * @description Verifica si el usuario logueado CUMPLE los prerrequisitos de una asignatura.
+ * @access Estudiante (autenticado)
+ */
+exports.verificar = async (req, res, next) => {
+  try {
+    const sigla = (req.params.sigla || '').toUpperCase();
+    const usuarioId = req.user.id; // <-- Necesita 'auth' middleware
+
+    // 1. Buscar la asignatura para obtener su ID
+    const asignatura = await Asignatura.findOne({ 
+      where: { sigla }, 
+      attributes: ['id', 'nombre'] 
+    });
+    if (!asignatura) {
+      return fail(res, 'Asignatura no encontrada', 404);
+    }
+
+    // 2. Buscar todos los requisitos para esa asignatura
+    const requisitos = await Requisito.findAll({
+      where: { asignatura_id: asignatura.id },
+      include: [{ 
+        model: Asignatura, 
+        as: 'requerida', 
+        attributes: ['sigla', 'nombre'] // Traemos los datos del ramo 'requerido'
+      }]
+    });
+
+    // 3. Caso: La asignatura no tiene requisitos
+    if (requisitos.length === 0) {
+      return ok(res, { 
+        met_all: true, 
+        unmet: [], 
+        message: '✅ ¡Perfecto! Esta asignatura no tiene prerrequisitos.' 
+      });
+    }
+
+    // 4. Si tiene requisitos, buscar el progreso del usuario
+    const progresos = await ProgresoUsuario.findAll({
+      where: { 
+        usuario_id: usuarioId,
+        estado: 'aprobada' // Solo nos interesan los ramos aprobados
+      },
+      attributes: ['asignatura_sigla']
+    });
+    
+    // Creamos un Set (mapa) para búsqueda rápida, ej: Set( 'MAT100', 'INF100' )
+    const progresosAprobados = new Set(progresos.map(p => p.asignatura_sigla));
+
+    // 5. Comparamos los requisitos contra el progreso
+    const unmetPrereqs = []; // Aquí guardamos los ramos que faltan
+    for (const req of requisitos) {
+      // Si el ramo requerido NO está en el Set de aprobados...
+      if (!progresosAprobados.has(req.requerida.sigla)) {
+        unmetPrereqs.push(req.requerida);
+      }
+    }
+
+    // 6. Construir el mensaje de respuesta para el chat
+    const met_all = unmetPrereqs.length === 0;
+    let message = '';
+    
+    if (met_all) {
+      // Caso: Cumple todo
+      const nombresRequisitos = requisitos.map(r => `**${r.requerida.nombre}**`);
+      message = `✅ ¡Puedes tomarla! Cumples con ${nombresRequisitos.join(', ')}.`;
+    } else {
+      // Caso: Le faltan ramos
+      const nombresUnmet = unmetPrereqs.map(r => `**${r.nombre}**`);
+      message = `❌ Aún no puedes. Te falta aprobar: ${nombresUnmet.join(', ')}.`;
+    }
+
+    return ok(res, { 
+      met_all: met_all, 
+      unmet: unmetPrereqs,
+      message: message 
+    });
+
+  } catch (err) {
+    next(err);
   }
 };

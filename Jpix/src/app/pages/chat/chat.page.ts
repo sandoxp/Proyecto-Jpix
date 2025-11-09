@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ChatService } from 'src/app/services/chat.service';
 
@@ -8,10 +8,15 @@ import { ChatService } from 'src/app/services/chat.service';
   styleUrls: ['./chat.page.scss'],
   standalone: false,
 })
-export class ChatPage implements OnInit {
+export class ChatPage implements OnInit, AfterViewChecked {
   userMessage: string = '';
   assistantMessages: string[] = [];
   isChatOpen: boolean = true;
+  loading: boolean = false;
+
+  // 🔧 AÑADIDO: Para auto-scroll
+  @ViewChild('messagesEnd') private messagesEnd: ElementRef | undefined;
+  private shouldScroll = false;
 
   constructor(
     private router: Router,
@@ -19,47 +24,99 @@ export class ChatPage implements OnInit {
     private chatService: ChatService
   ) {}
 
-  ngOnInit() {
-  const navigationState = this.router.getCurrentNavigation()?.extras.state;
+  // 🔧 AÑADIDO: Auto-scroll después de cada actualización
+  ngAfterViewChecked() {
+    if (this.shouldScroll) {
+      this.scrollToBottom();
+      this.shouldScroll = false;
+    }
+  }
 
-  // Si viene desde Home con flujo explícito
-  if (navigationState && navigationState['startFlow']) {
-    this.chatService.resetConversation();
+  // 🔧 MÉTODO PARA AUTO-SCROLL
+  private scrollToBottom(): void {
+    try {
+      if (this.messagesEnd?.nativeElement) {
+        this.messagesEnd.nativeElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    } catch (err) {
+      console.error('Error en scroll:', err);
+    }
+  }
 
-    const flow = navigationState['startFlow'] as 'organizar' | 'ubicacion' | 'agregar';
-    const opening = this.chatService.startFlow(flow); // << muestra saludo/inicio del flujo
-    this.assistantMessages.push(`Jpix: ${opening}`);
+  async ngOnInit() {
+    const navigationState = this.router.getCurrentNavigation()?.extras.state;
 
-    // Si quieres, también pinta el texto del botón como mensaje del usuario (opcional):
-    const preset = navigationState['userQuery'];
-    if (preset) {
-      this.assistantMessages.push(`Tú: ${preset}`);
-      const response = this.chatService.getResponse(preset);
-      this.assistantMessages.push(`Jpix: ${response}`);
+    if (navigationState && navigationState['startFlow']) {
+      this.chatService.resetConversation();
+      this.loading = true;
+      this.assistantMessages.push('Jpix: ...escribiendo');
+      this.shouldScroll = true; // 🔧 AÑADIDO
+
+      const flow = navigationState['startFlow'] as 'organizar' | 'ubicacion' | 'agregar';
+      const opening = await this.chatService.startFlow(flow);
+
+      this.assistantMessages[this.assistantMessages.length - 1] = `Jpix: ${opening}`;
+      this.loading = false;
+      this.shouldScroll = true; // 🔧 AÑADIDO
+
+      const preset = navigationState['userQuery'];
+      if (preset) {
+        this.assistantMessages.push(`Tú: ${preset}`);
+        this.loading = true;
+        this.assistantMessages.push('Jpix: ...escribiendo');
+        this.shouldScroll = true; // 🔧 AÑADIDO
+
+        const response = await this.chatService.getResponse(preset);
+
+        this.assistantMessages[this.assistantMessages.length - 1] = `Jpix: ${response}`;
+        this.loading = false;
+        this.shouldScroll = true; // 🔧 AÑADIDO
+      }
+
+      this.userMessage = '';
+      return;
     }
 
-    this.userMessage = '';
-    return;
-  }
-
-  // Caso anterior: si solo viene userQuery sin startFlow
-  if (navigationState && navigationState['userQuery']) {
-    this.chatService.resetConversation();
-    this.userMessage = navigationState['userQuery'];
-    this.assistantMessages.push(`Tú: ${this.userMessage}`);
-    const response = this.chatService.getResponse(this.userMessage);
-    this.assistantMessages.push(`Jpix: ${response}`);
-    this.userMessage = '';
-  }
-}
-
-
-  onSendMessage() {
-    if (this.userMessage) {
+    if (navigationState && navigationState['userQuery']) {
+      this.chatService.resetConversation();
+      this.userMessage = navigationState['userQuery'];
       this.assistantMessages.push(`Tú: ${this.userMessage}`);
-      const response = this.chatService.getResponse(this.userMessage);
-      this.assistantMessages.push(`Jpix: ${response}`);
+      this.loading = true;
+      this.assistantMessages.push('Jpix: ...escribiendo');
+      this.shouldScroll = true; // 🔧 AÑADIDO
+
+      const response = await this.chatService.getResponse(this.userMessage);
+
+      this.assistantMessages[this.assistantMessages.length - 1] = `Jpix: ${response}`;
+      this.loading = false;
+      this.shouldScroll = true; // 🔧 AÑADIDO
       this.userMessage = '';
+    }
+  }
+
+  async onSendMessage() {
+    if (this.loading || !this.userMessage) {
+      return;
+    }
+
+    const message = this.userMessage;
+    this.assistantMessages.push(`Tú: ${message}`);
+    this.userMessage = '';
+    this.loading = true;
+    this.shouldScroll = true; // 🔧 AÑADIDO
+
+    this.assistantMessages.push('Jpix: ...escribiendo');
+    const loadingIndex = this.assistantMessages.length - 1;
+
+    try {
+      const response = await this.chatService.getResponse(message);
+      this.assistantMessages[loadingIndex] = `Jpix: ${response}`;
+    } catch (error) {
+      console.error('Error en getResponse', error);
+      this.assistantMessages[loadingIndex] = 'Jpix: Lo siento, ocurrió un error al procesar tu solicitud.';
+    } finally {
+      this.loading = false;
+      this.shouldScroll = true; // 🔧 AÑADIDO
     }
   }
 }

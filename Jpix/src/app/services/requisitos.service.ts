@@ -1,6 +1,3 @@
-// Jpix/src/app/services/requisitos.service.ts
-// (COMPLETO)
-
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
@@ -21,6 +18,20 @@ export interface RequisitoPayload {
   asignatura_sigla: string;
   requiere_sigla: string;
 }
+
+// ==============================================================
+// --- INICIO: NUEVA INTERFAZ PARA EL CHAT (PASO 2) ---
+// ==============================================================
+// Esta interfaz debe coincidir con la respuesta del endpoint 'verificar'
+export interface VerificacionResponse {
+  met_all: boolean;
+  unmet: Asignatura[];
+  message: string;
+}
+// ==============================================================
+// --- FIN DE LA NUEVA INTERFAZ ---
+// ==============================================================
+
 
 @Injectable({ providedIn: 'root' })
 export class RequisitosService {
@@ -51,4 +62,18 @@ export class RequisitosService {
   remove(id: number): Observable<ApiResponse<{ message: string }>> {
     return this.http.delete<ApiResponse<{ message: string }>>(`${this.base}/${id}`);
   }
+
+  // ==============================================================
+  // --- INICIO: NUEVA FUNCIÓN PARA EL CHAT (PASO 2) ---
+  // ==============================================================
+  /**
+   * Llama al endpoint de verificación de requisitos para el usuario logueado.
+   * Llama a: GET /api/v1/requisitos/verificar/:sigla
+   */
+  verificar(sigla: string): Observable<ApiResponse<VerificacionResponse>> {
+    return this.http.get<ApiResponse<VerificacionResponse>>(`${this.base}/verificar/${sigla}`);
+  }
+  // ==============================================================
+  // --- FIN DE LA NUEVA FUNCIÓN ---
+  // ==============================================================
 }

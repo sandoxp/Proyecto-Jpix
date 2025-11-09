@@ -159,3 +159,45 @@ exports.remove = async (req, res) => {
   await asignatura.destroy();
   return ok(res, { message: 'Asignatura eliminada correctamente' });
 };
+
+// ===============================================
+// --- INICIO: NUEVA FUNCIÓN PARA EL CHAT (PASO 1) ---
+// ===============================================
+
+/**
+ * @api {get} /api/v1/asignaturas/buscar?q=...
+ * @description Busca asignaturas por sigla o nombre.
+ * @access Estudiante (autenticado)
+ */
+exports.buscar = async (req, res, next) => {
+  try {
+    const query = (req.query.q || '').trim();
+
+    // No buscamos si el query es muy corto (evita traer toda la BDD)
+    if (query.length < 2) {
+      return ok(res, []);
+    }
+
+    // Usamos Op.iLike para que sea Case-Insensitive (solo funciona en PostgreSQL)
+    const searchTerm = `%${query}%`;
+
+    const data = await Asignatura.findAll({
+      where: {
+        [Op.or]: [
+          { sigla: { [Op.iLike]: searchTerm } },
+          { nombre: { [Op.iLike]: searchTerm } }
+        ]
+      },
+      // Devolvemos solo lo que el chat necesita
+      attributes: ['sigla', 'nombre', 'tipo'],
+      // Limitamos la cantidad de resultados
+      limit: 10,
+      order: [['sigla', 'ASC']]
+    });
+
+    return ok(res, data);
+
+  } catch (err) {
+    next(err);
+  }
+};

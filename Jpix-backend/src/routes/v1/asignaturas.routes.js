@@ -20,6 +20,25 @@ router.get(
   asyncH(C.getMiCatalogo) 
 );
 
+// ==============================================================
+// --- INICIO: NUEVA RUTA PARA EL CHAT (PASO 1) ---
+// ==============================================================
+/**
+ * @api {get} /api/v1/asignaturas/buscar?q=...
+ * @description Busca asignaturas.
+ * @access Estudiante (autenticado)
+ */
+// Esta ruta también DEBE ir antes de /:sigla
+router.get(
+  '/buscar',
+  auth, // Protegida, solo para usuarios logueados
+  asyncH(C.buscar)
+);
+// ==============================================================
+// --- FIN DE LA NUEVA RUTA ---
+// ==============================================================
+
+
 // Ruta pública para ver el detalle de UNA asignatura
 // Esta ruta dinámica debe ir al final
 router.get('/:sigla', asyncH(C.getOne));
