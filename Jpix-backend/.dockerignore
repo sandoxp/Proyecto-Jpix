@@ -1,0 +1,7 @@
+# Ignora las dependencias que no deben ir en el contenedor
+node_modules
+# Ignora el archivo de entorno local (lo pasamos por docker-compose)
+.env
+# Ignora logs y archivos de sistema
+npm-debug.log
+.DS_Store

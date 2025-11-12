@@ -1,0 +1,43 @@
+# ----------------------------------------------------
+# SERVICIOS
+# ----------------------------------------------------
+services:
+  # 1. SERVICIO DE BACKEND (Tu API)
+  # Este contenedor leerá tu .env y se conectará a Azure
+  backend:
+    build:
+      context: ./Jpix-backend
+      dockerfile: Dockerfile
+    container_name: jpix-api
+    ports:
+      - "3000:3000"
+    environment:
+      # Pasamos TODAS las variables de tu .env
+      NODE_ENV: development
+      PORT: 3000
+      
+      # Coordenadas de la DB (ahora de Azure)
+      DB_HOST: jpix-postgres-server.postgres.database.azure.com
+      DB_PORT: 5432
+      DB_NAME: jpix_db
+      DB_USER: jpix_admin
+      DB_PASS: QArvP6ckcV8GCeY
+      DB_DIALECT: postgres
+      DB_SSL: true # ¡Clave!
+      
+      # Secretos
+      JWT_SECRET: "pon-aqui-un-secreto-largo-aleatorio-por-ejemplo-64-caracteres"
+      JWT_EXPIRES_IN: 1h
+      REFRESH_DAYS: 7
+
+
+  # 2. SERVICIO DE FRONTEND (Tu App Ionic)
+  frontend:
+    build:
+      context: ./Jpix
+      dockerfile: Dockerfile
+    container_name: jpix-web
+    ports:
+      - "8100:80"
+    depends_on:
+      - backend # Aún depende del backend
