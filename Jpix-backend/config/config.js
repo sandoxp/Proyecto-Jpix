@@ -5,6 +5,12 @@ const base = {
   port: Number(process.env.DB_PORT || 5432),
   dialect: process.env.DB_DIALECT || 'postgres',
   logging: false, // ↓ menos ruido en consola
+  dialectOptions: process.env.DB_SSL === 'true' ? {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false  // Necesario para Azure
+    }
+  } : {}
 };
 
 module.exports = {
@@ -28,7 +34,7 @@ module.exports = {
     port: Number(process.env.DB_PORT || 5432),
     dialect: process.env.DB_DIALECT || 'postgres',
     logging: false,
-    // Actívalo si tu proveedor pide SSL (p. ej. Render/Neon/Heroku):
+    // Activar si e; proveedor pide SSL
     dialectOptions: process.env.DB_SSL === 'true' ? {
       ssl: { require: true, rejectUnauthorized: false }
     } : {}
